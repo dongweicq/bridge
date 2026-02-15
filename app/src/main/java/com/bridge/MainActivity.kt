@@ -2,6 +2,7 @@ package com.bridge
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
@@ -21,12 +22,24 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
         accessibilityBtn = findViewById(R.id.accessibilityBtn)
 
+        // 确保 BridgeService 启动
+        startBridgeService()
+
         accessibilityBtn.setOnClickListener {
             openAccessibilitySettings()
         }
 
         findViewById<Button>(R.id.testPingBtn).setOnClickListener {
             testPing()
+        }
+    }
+
+    private fun startBridgeService() {
+        val intent = Intent(this, BridgeService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
     }
 
