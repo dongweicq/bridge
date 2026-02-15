@@ -15,6 +15,10 @@
     <!-- 通知权限 (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- 查询所有包（Android 11+ 需要此权限才能检测微信是否安装） -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:name=".BridgeApp"
         android:allowBackup="true"
