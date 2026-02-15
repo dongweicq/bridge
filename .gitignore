@@ -1,0 +1,32 @@
+# Gradle files
+.gradle/
+build/
+*/build/
+
+# Local configuration
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# APK
+*.apk
+*.ap_
+*.aab
+
+# Keystore (never commit)
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# Claude
+.claude/

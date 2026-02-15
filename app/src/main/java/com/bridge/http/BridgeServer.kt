@@ -1,0 +1,221 @@
+package com.bridge.http
+
+import android.util.Log
+import com.bridge.BridgeAccessibilityService
+import com.bridge.BridgeService
+import com.bridge.action.ActionDispatcher
+import com.bridge.model.Task
+import com.bridge.model.TaskResult
+import com.bridge.model.TaskStatus
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import fi.iki.elonen.NanoHTTPD
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
+
+/**
+ * Bridge HTTP Server
+ * 提供 REST API 供 OpenClaw 调用
+ */
+class BridgeServer(port: Int) : NanoHTTPD(port) {
+
+    companion object {
+        private const val TAG = "BridgeServer"
+        private val gson = Gson()
+
+        // 任务存储（内存，简单实现）
+        private val tasks = ConcurrentHashMap<String, Task>()
+    }
+
+    override fun serve(session: IHTTPSession): Response {
+        val uri = session.uri
+        val method = session.method
+
+        Log.d(TAG, "Request: $method $uri")
+
+        return try {
+            when {
+                uri == "/ping" && method == Method.GET -> handlePing()
+                uri == "/health" && method == Method.GET -> handleHealth()
+                uri == "/send_message" && method == Method.POST -> handleSendMessage(session)
+                uri.startsWith("/task/") && method == Method.GET -> handleTaskStatus(uri)
+                else -> json(Response.Status.NOT_FOUND, mapOf("error" to "Not Found"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Request error", e)
+            json(Response.Status.INTERNAL_ERROR, mapOf("error" to (e.message ?: "Internal Error")))
+        }
+    }
+
+    /**
+     * GET /ping - 健康检查
+     */
+    private fun handlePing(): Response {
+        return json(Response.Status.OK, mapOf(
+            "status" to "ok",
+            "version" to "1.0"
+        ))
+    }
+
+    /**
+     * GET /health - 状态检查
+     */
+    private fun handleHealth(): Response {
+        val accessibilityEnabled = BridgeAccessibilityService.instance != null
+
+        return json(Response.Status.OK, mapOf(
+            "status" to if (accessibilityEnabled) "ok" else "degraded",
+            "uptime" to formatUptime(),
+            "queue_length" to tasks.values.count { it.status == TaskStatus.QUEUED },
+            "accessibility_enabled" to accessibilityEnabled,
+            "service_running" to BridgeService.isRunning
+        ))
+    }
+
+    /**
+     * POST /send_message - 发送消息
+     */
+    private fun handleSendMessage(session: IHTTPSession): Response {
+        // 解析请求体
+        val body = parseBody(session)
+        val target = body["target"] as? String
+        val message = body["message"] as? String
+
+        if (target.isNullOrBlank() || message.isNullOrBlank()) {
+            return json(Response.Status.BAD_REQUEST, mapOf(
+                "status" to "error",
+                "error" to "Missing 'target' or 'message'"
+            ))
+        }
+
+        // 检查无障碍服务
+        if (BridgeAccessibilityService.instance == null) {
+            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
+                "status" to "error",
+                "error" to "Accessibility service not enabled"
+            ))
+        }
+
+        // 创建任务
+        val task = Task(
+            type = com.bridge.model.TaskType.SEND_MESSAGE,
+            target = target,
+            message = message
+        )
+        tasks[task.id] = task
+
+        // 异步执行任务
+        executeTaskAsync(task)
+
+        // 立即返回
+        return json(Response.Status.OK, mapOf(
+            "status" to "queued",
+            "task_id" to task.id
+        ))
+    }
+
+    /**
+     * GET /task/{id} - 查询任务状态
+     */
+    private fun handleTaskStatus(uri: String): Response {
+        val taskId = uri.removePrefix("/task/")
+        val task = tasks[taskId]
+
+        if (task == null) {
+            return json(Response.Status.NOT_FOUND, mapOf(
+                "error" to "Task not found"
+            ))
+        }
+
+        val result = mutableMapOf(
+            "id" to task.id,
+            "status" to task.status.name.lowercase(),
+            "target" to task.target
+        )
+
+        if (task.status == TaskStatus.FAILED) {
+            result["error"] = (task.error ?: "Unknown error")
+        }
+
+        return json(Response.Status.OK, result)
+    }
+
+    /**
+     * 异步执行任务
+     */
+    private fun executeTaskAsync(task: Task) {
+        CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                // 更新状态为运行中
+                task.status = TaskStatus.RUNNING
+
+                // 在 Action 线程执行 UI 操作
+                val result = withContext(ActionDispatcher.dispatcher) {
+                    val service = BridgeAccessibilityService.instance
+                    if (service == null) {
+                        TaskResult.fail("Accessibility service not available")
+                    } else {
+                        service.executeSendMessage(task)
+                    }
+                }
+
+                // 更新任务状态
+                if (result.success) {
+                    task.status = TaskStatus.DONE
+                    Log.d(TAG, "Task ${task.id} completed: ${result.message}")
+                } else {
+                    task.status = TaskStatus.FAILED
+                    task.error = result.error ?: "Unknown error"
+                    Log.w(TAG, "Task ${task.id} failed: ${task.error}")
+                }
+
+            } catch (e: Exception) {
+                task.status = TaskStatus.FAILED
+                task.error = e.message ?: "Exception"
+                Log.e(TAG, "Task ${task.id} exception", e)
+            }
+        }
+    }
+
+    // ==================== 辅助方法 ====================
+
+    /**
+     * 解析 JSON 请求体
+     */
+    private fun parseBody(session: IHTTPSession): Map<String, Any> {
+        val files = mutableMapOf<String, String>()
+        session.parseBody(files)
+
+        val body = files["postData"] ?: return emptyMap()
+        return try {
+            gson.fromJson(body, JsonObject::class.java).let { json ->
+                json.entrySet().associate { it.key to (it.value.asString) }
+            }
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    /**
+     * 返回 JSON 响应
+     */
+    private fun json(status: Response.Status, data: Any): Response {
+        return newFixedLengthResponse(
+            status,
+            "application/json",
+            gson.toJson(data)
+        )
+    }
+
+    /**
+     * 格式化运行时间
+     */
+    private fun formatUptime(): String {
+        val uptimeMs = android.os.SystemClock.elapsedRealtime()
+        val hours = uptimeMs / 3600000
+        val minutes = (uptimeMs % 3600000) / 60000
+        return "${hours}h${minutes}m"
+    }
+}
