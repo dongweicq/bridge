@@ -185,6 +185,24 @@ class BridgeAccessibilityService : AccessibilityService() {
     }
 
     /**
+     * 执行长按手势
+     */
+    fun longPressAt(x: Int, y: Int, durationMs: Long = 800): Boolean {
+        return try {
+            val gestureBuilder = GestureDescription.Builder()
+            val path = android.graphics.Path()
+            path.moveTo(x.toFloat(), y.toFloat())
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 0, durationMs))
+
+            val gesture = gestureBuilder.build()
+            dispatchGesture(gesture, null, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to long press at ($x, $y)", e)
+            false
+        }
+    }
+
+    /**
      * 执行滑动手势
      */
     fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, durationMs: Long = 300): Boolean {
