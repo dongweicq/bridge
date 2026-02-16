@@ -349,7 +349,7 @@ class WeChatActionEngine {
             // 确保服务在前台
             val clipboard = service.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             // 使用 MIME 类型明确指定文本类型
-            val clip = android.content.ClipData.newPlainText("text/plain", message)
+            val clip = android.content.ClipData.newPlainText(null, message)
             clipboard.setPrimaryClip(clip)
             Log.d(TAG, "已设置剪贴板内容: $message")
 
@@ -507,7 +507,7 @@ class WeChatActionEngine {
         // 设置剪贴板内容（先设置，因为后续可能需要粘贴）
         try {
             val clipboard = service.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            val clip = android.content.ClipData.newPlainText("text", text)
+            val clip = android.content.ClipData.newPlainText(null, text)
             clipboard.setPrimaryClip(clip)
             Log.d(TAG, "已设置剪贴板内容: ${text.take(20)}...")
         } catch (e: Exception) {
