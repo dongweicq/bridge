@@ -279,6 +279,9 @@ class WeChatActionEngine {
 
         Log.d(TAG, "点击输入法剪贴板区域: ($imeX, $imeY)")
 
+        // 等待剪贴板内容显示在键盘上（需要时间加载）
+        delay(1000)
+
         // 点击剪贴板内容区域
         service.clickAt(imeX, imeY)
 
