@@ -44,8 +44,8 @@ class WeChatActionEngine {
 
         // 输入法键盘上的剪贴板区域坐标
         // 注意：输入法是独立APP，无法通过无障碍访问，只能用坐标点击
-        // 根据截图分析：剪贴板内容显示在键盘右下角的"中/英"切换按钮位置
-        private val COORD_IME_CLIPBOARD = CoordinateRatio(0.85f, 0.78f)   // 输入法剪贴板（右下角中/英切换按钮）
+        // 根据截图分析：剪贴板内容显示在键盘上方中间位置
+        private val COORD_IME_CLIPBOARD = CoordinateRatio(0.50f, 0.65f)   // 输入法剪贴板（键盘上方中间）
     }
 
     /**
