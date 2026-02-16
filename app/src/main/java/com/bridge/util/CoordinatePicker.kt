@@ -11,6 +11,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.bridge.R
@@ -126,7 +127,21 @@ class CoordinatePicker(
         val coordinateText = view.findViewById<TextView>(R.id.coordinateText)
         val confirmButton = view.findViewById<Button>(R.id.confirmButton)
         val cancelButton = view.findViewById<Button>(R.id.cancelButton)
-        val bottomPanel = view.findViewById<View>(R.id.coordinateText).parent as View
+        val hidePanelButton = view.findViewById<Button>(R.id.hidePanelButton)
+        val showPanelButton = view.findViewById<Button>(R.id.showPanelButton)
+        val bottomPanel = view.findViewById<LinearLayout>(R.id.bottomPanel)
+
+        // 隐藏面板按钮
+        hidePanelButton.setOnClickListener {
+            bottomPanel.visibility = View.GONE
+            showPanelButton.visibility = View.VISIBLE
+        }
+
+        // 显示面板按钮
+        showPanelButton.setOnClickListener {
+            bottomPanel.visibility = View.VISIBLE
+            showPanelButton.visibility = View.GONE
+        }
 
         // 蒙层触摸事件
         view.setOnTouchListener { _, event ->
@@ -135,11 +150,23 @@ class CoordinatePicker(
                 val rawX = event.rawX
                 val rawY = event.rawY
 
-                // 检查是否点击在底部面板上
-                val panelLocation = IntArray(2)
-                bottomPanel.getLocationOnScreen(panelLocation)
-                if (rawY >= panelLocation[1]) {
-                    return@setOnTouchListener false
+                // 如果面板可见，检查是否点击在底部面板上
+                if (bottomPanel.visibility == View.VISIBLE) {
+                    val panelLocation = IntArray(2)
+                    bottomPanel.getLocationOnScreen(panelLocation)
+                    if (rawY >= panelLocation[1]) {
+                        return@setOnTouchListener false
+                    }
+                }
+
+                // 如果显示面板按钮可见，检查是否点击在按钮上
+                if (showPanelButton.visibility == View.VISIBLE) {
+                    val btnLocation = IntArray(2)
+                    showPanelButton.getLocationOnScreen(btnLocation)
+                    if (rawX >= btnLocation[0] && rawX <= btnLocation[0] + showPanelButton.width &&
+                        rawY >= btnLocation[1] && rawY <= btnLocation[1] + showPanelButton.height) {
+                        return@setOnTouchListener false
+                    }
                 }
 
                 // 记录坐标（相对于屏幕尺寸的比例）

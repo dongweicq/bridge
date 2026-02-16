@@ -14,8 +14,21 @@
         android:visibility="gone"
         android:layout_gravity="top|start"/>
 
+    <!-- 浮动显示面板按钮（面板隐藏时显示） -->
+    <Button
+        android:id="@+id/showPanelButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="16dp"
+        android:text="显示面板"
+        android:textSize="12sp"
+        android:backgroundTint="#2196F3"
+        android:visibility="gone"/>
+
     <!-- 底部控制面板 -->
     <LinearLayout
+        android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -51,18 +64,29 @@
             android:gravity="center">
 
             <Button
+                android:id="@+id/hidePanelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="隐藏面板"
+                android:textSize="12sp"
+                android:backgroundTint="#FF9800"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
                 android:id="@+id/cancelButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="取消"
+                android:textSize="12sp"
                 android:backgroundTint="#9E9E9E"
-                android:layout_marginEnd="32dp"/>
+                android:layout_marginEnd="8dp"/>
 
             <Button
                 android:id="@+id/confirmButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="确定"
+                android:textSize="12sp"
                 android:backgroundTint="#4CAF50"
                 android:enabled="false"/>
         </LinearLayout>
