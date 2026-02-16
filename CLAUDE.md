@@ -104,3 +104,68 @@ Detailed specifications in `doc/`:
 - `BRIDGE_SPEC.md` - v1 initial spec
 - `BRIDGE_SPEC_v2.md` - v2 with engineering review improvements
 - `BRIDGE_SPEC_v3.md` - v3 production-ready spec (authoritative)
+
+## Development Workflow
+
+### GitHub Repository
+
+**Repository URL**: https://github.com/dongweicq/bridge
+
+### Build & Deploy Process
+
+This project uses GitHub Actions for CI/CD. **Do NOT build locally** - always use GitHub Actions.
+
+#### Steps to Deploy:
+
+1. **Commit and Push Changes**:
+   ```bash
+   git add -A
+   git commit -m "Your commit message"
+   git push origin main
+   ```
+
+2. **Wait for GitHub Actions Build** (~2-3 minutes):
+   - View build status: https://github.com/dongweicq/bridge/actions
+   - Build creates both `app-debug.apk` and `app-release-unsigned.apk`
+
+3. **Download APK from Releases**:
+   - Releases URL: https://github.com/dongweicq/bridge/releases
+   - Download command:
+   ```bash
+   curl -L -o app-debug.apk "https://github.com/dongweicq/bridge/releases/download/v1.0.XX/app-debug.apk"
+   ```
+
+4. **Install APK via ADB**:
+   ```bash
+   adb install -r app-debug.apk
+   adb shell am start -n com.bridge/.MainActivity
+   ```
+
+### Version Numbering
+
+- Version is automatically incremented by GitHub Actions
+- Format: `v1.0.XX` where XX is the build number
+
+### Coordinate Configuration Feature (v1.0.31+)
+
+Bridge APP includes a coordinate calibration system for device-specific touch positioning:
+
+1. **Grant Permissions**:
+   - Enable Accessibility Service (无障碍服务)
+   - Grant Overlay Permission (悬浮窗权限)
+
+2. **Calibrate 5 Steps**:
+   - Step 1: Search button (微信首页右上角放大镜)
+   - Step 2: IME clipboard (输入法剪贴板位置)
+   - Step 3: Contact (搜索结果联系人)
+   - Step 4: Message input (消息输入框)
+   - Step 5: Send button (发送按钮)
+
+3. **How to Calibrate**:
+   - Click "获取" button for each step
+   - APP auto-executes pre-steps (opens WeChat, navigates to target screen)
+   - An overlay appears - tap the target position
+   - Coordinates are saved as screen ratios (0.0-1.0)
+
+4. **Test Configuration**:
+   - Click "测试发送消息" to verify calibration
