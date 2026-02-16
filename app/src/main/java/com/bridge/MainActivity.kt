@@ -431,68 +431,72 @@ class MainActivity : AppCompatActivity() {
             try {
                 // 步骤1：打开微信
                 service.openWeChat()
-                delay(2000)
+                kotlinx.coroutines.delay(6000 + Random.nextLong(6000))
 
                 if (step == 1) return@withContext true
 
                 // 步骤1b：点击搜索按钮
+                kotlinx.coroutines.delay(2400 + Random.nextLong(2100))
                 val screenBounds = service.getScreenBounds()
                 val x1 = (screenBounds.width() * ConfigManager.getSearchBtnX(this@MainActivity)).toInt()
                 val y1 = (screenBounds.height() * ConfigManager.getSearchBtnY(this@MainActivity)).toInt()
                 service.clickAt(x1, y1)
-                delay(1000)
+                kotlinx.coroutines.delay(1500 + Random.nextLong(2100))
 
                 // 步骤2需要：设置剪贴板内容，点击输入框触发输入法
                 if (step == 2) {
+                    kotlinx.coroutines.delay(2400 + Random.nextLong(2100))
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                     clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
-                    delay(500)
+                    kotlinx.coroutines.delay(1800 + Random.nextLong(2700))
 
                     // 点击搜索输入框触发输入法
                     val inputX = (screenBounds.width() * 0.50f).toInt()
                     val inputY = (screenBounds.height() * 0.05f).toInt()
                     service.clickAt(inputX, inputY)
-                    delay(1500) // 等待输入法弹出
+                    kotlinx.coroutines.delay(3000 + Random.nextLong(3000))
                     return@withContext true
                 }
 
                 // 步骤2b：设置剪贴板并点击输入法剪贴板（用于后续步骤）
+                kotlinx.coroutines.delay(2400 + Random.nextLong(2100))
                 val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
-                delay(500)
+                kotlinx.coroutines.delay(1800 + Random.nextLong(2700))
 
                 // 点击搜索输入框触发输入法
                 val inputX = (screenBounds.width() * 0.50f).toInt()
                 val inputY = (screenBounds.height() * 0.05f).toInt()
                 service.clickAt(inputX, inputY)
-                delay(1000)
+                kotlinx.coroutines.delay(3000 + Random.nextLong(3000))
 
                 // 点击输入法剪贴板
+                kotlinx.coroutines.delay(2400 + Random.nextLong(2100))
                 val x2 = (screenBounds.width() * ConfigManager.getImeClipboardX(this@MainActivity)).toInt()
                 val y2 = (screenBounds.height() * ConfigManager.getImeClipboardY(this@MainActivity)).toInt()
                 service.clickAt(x2, y2)
-                delay(500)
+                kotlinx.coroutines.delay(4500 + Random.nextLong(4500))
 
                 if (step == 3) return@withContext true
 
-                // 步骤3：点击联系人（第一个搜索结果）
+                // 步骤3：点击联系人（第一个搜索结果）- 需要等待搜索结果
+                kotlinx.coroutines.delay(4500 + Random.nextLong(4500))
                 val x3 = (screenBounds.width() * ConfigManager.getContactX(this@MainActivity)).toInt()
                 val y3 = (screenBounds.height() * ConfigManager.getContactY(this@MainActivity)).toInt()
                 service.clickAt(x3, y3)
-                delay(1000)
+                kotlinx.coroutines.delay(1500 + Random.nextLong(2100))
 
                 if (step == 4) return@withContext true
 
                 // 步骤4：点击消息输入框
+                kotlinx.coroutines.delay(2400 + Random.nextLong(2100))
                 val x4 = (screenBounds.width() * ConfigManager.getMsgInputX(this@MainActivity)).toInt()
                 val y4 = (screenBounds.height() * ConfigManager.getMsgInputY(this@MainActivity)).toInt()
                 service.clickAt(x4, y4)
-                delay(500)
+                kotlinx.coroutines.delay(3000 + Random.nextLong(3000))
 
                 if (step == 5) {
-                    // 步骤5需要隐藏键盘
-                    service.goBack()
-                    delay(300)
+                    // 步骤5不需要隐藏键盘，因为发送按钮坐标是在键盘弹出时获取的
                     return@withContext true
                 }
 
