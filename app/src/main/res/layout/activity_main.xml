@@ -77,11 +77,11 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"/>
 
-        <!-- 坐标配置标题 -->
+        <!-- 测试区域 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="坐标配置（首次使用请逐个获取）"
+            android:text="测试功能"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#333333"/>
@@ -89,445 +89,82 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="点击「获取」按钮，在蒙层上点击目标位置"
+            android:text="使用工具链测试（需先在工具管理中配置坐标）"
             android:textSize="11sp"
             android:textColor="#999999"
             android:layout_marginTop="2dp"/>
 
-        <!-- 步骤1：搜索按钮 -->
+        <!-- 联系人输入 -->
         <LinearLayout
-            android:id="@+id/step1Layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#F9F9F9"
-            android:padding="8dp"
+            android:orientation="horizontal"
             android:layout_marginTop="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="步骤1: 搜索按钮"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
+                android:text="联系人:"/>
 
-            <TextView
+            <EditText
+                android:id="@+id/contactInput"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:textSize="12sp"
+                android:gravity="center_vertical"
+                android:layout_marginStart="4dp"
+                android:text="1810835"/>
+
+            <Button
+                android:id="@+id/testSearchBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="微信首页右上角放大镜"
-                android:textSize="11sp"
-                android:textColor="#666666"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X:"/>
-
-                <EditText
-                    android:id="@+id/step1X"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y:"
-                    android:layout_marginStart="8dp"/>
-
-                <EditText
-                    android:id="@+id/step1Y"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <Button
-                    android:id="@+id/step1PickBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="获取"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="#2196F3"/>
-
-                <Button
-                    android:id="@+id/step1TestBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="测试"
-                    android:textSize="12sp"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#FF9800"/>
-            </LinearLayout>
+                android:layout_height="36dp"
+                android:text="测试搜索"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="#2196F3"/>
         </LinearLayout>
 
-        <!-- 步骤2：输入法剪贴板 -->
-        <LinearLayout
-            android:id="@+id/step2Layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#F9F9F9"
-            android:padding="8dp"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="步骤2: 输入法剪贴板"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="键盘上的剪贴板内容位置"
-                android:textSize="11sp"
-                android:textColor="#666666"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X:"/>
-
-                <EditText
-                    android:id="@+id/step2X"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y:"
-                    android:layout_marginStart="8dp"/>
-
-                <EditText
-                    android:id="@+id/step2Y"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <Button
-                    android:id="@+id/step2PickBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="获取"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="#2196F3"/>
-
-                <Button
-                    android:id="@+id/step2TestBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="测试"
-                    android:textSize="12sp"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#FF9800"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 步骤3：联系人 -->
-        <LinearLayout
-            android:id="@+id/step3Layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#F9F9F9"
-            android:padding="8dp"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="步骤3: 联系人"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="搜索结果中的联系人"
-                android:textSize="11sp"
-                android:textColor="#666666"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X:"/>
-
-                <EditText
-                    android:id="@+id/step3X"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y:"
-                    android:layout_marginStart="8dp"/>
-
-                <EditText
-                    android:id="@+id/step3Y"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <Button
-                    android:id="@+id/step3PickBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="获取"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="#2196F3"/>
-
-                <Button
-                    android:id="@+id/step3TestBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="测试"
-                    android:textSize="12sp"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#FF9800"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 步骤4：消息输入框 -->
-        <LinearLayout
-            android:id="@+id/step4Layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#F9F9F9"
-            android:padding="8dp"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="步骤4: 消息输入框"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="聊天界面底部输入框"
-                android:textSize="11sp"
-                android:textColor="#666666"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X:"/>
-
-                <EditText
-                    android:id="@+id/step4X"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y:"
-                    android:layout_marginStart="8dp"/>
-
-                <EditText
-                    android:id="@+id/step4Y"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <Button
-                    android:id="@+id/step4PickBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="获取"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="#2196F3"/>
-
-                <Button
-                    android:id="@+id/step4TestBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="测试"
-                    android:textSize="12sp"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#FF9800"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 步骤5：发送按钮 -->
-        <LinearLayout
-            android:id="@+id/step5Layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#F9F9F9"
-            android:padding="8dp"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="步骤5: 发送按钮"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="聊天界面发送按钮（点击前会隐藏键盘）"
-                android:textSize="11sp"
-                android:textColor="#666666"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X:"/>
-
-                <EditText
-                    android:id="@+id/step5X"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y:"
-                    android:layout_marginStart="8dp"/>
-
-                <EditText
-                    android:id="@+id/step5Y"
-                    android:layout_width="60dp"
-                    android:layout_height="36dp"
-                    android:inputType="numberDecimal"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:layout_marginStart="4dp"/>
-
-                <Button
-                    android:id="@+id/step5PickBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="获取"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="#2196F3"/>
-
-                <Button
-                    android:id="@+id/step5TestBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="测试"
-                    android:textSize="12sp"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#FF9800"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 底部按钮 -->
+        <!-- 消息输入 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="消息内容:"/>
+
+            <EditText
+                android:id="@+id/messageInput"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:textSize="12sp"
+                android:gravity="center_vertical"
+                android:layout_marginStart="4dp"
+                android:text="test"/>
 
             <Button
-                android:id="@+id/saveConfigBtn"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="保存配置"
-                android:backgroundTint="#2196F3"
-                android:layout_marginEnd="4dp"/>
-
-            <Button
-                android:id="@+id/resetConfigBtn"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="重置默认"
-                android:backgroundTint="#9E9E9E"
-                android:layout_marginStart="4dp"/>
+                android:id="@+id/testSendBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="测试发送"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="#FF9800"/>
         </LinearLayout>
-
-        <Button
-            android:id="@+id/testSendBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="测试发送消息"
-            android:backgroundTint="#FF9800"
-            android:layout_marginTop="4dp"/>
 
         <!-- 使用说明 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="使用说明:\n1. 启用无障碍服务\n2. 逐个点击「获取」按钮标定坐标\n3. 获取坐标时会自动执行前置步骤\n4. 在蒙层上点击目标位置\n5. 点击「确定」保存坐标\n6. 配置完成后可测试发送"
+            android:text="使用说明:\n1. 启用无障碍服务\n2. 点击「工具管理」配置工具坐标\n3. 每个工具可设置前置工具链\n4. 使用测试按钮验证配置\n5. 完成后可通过 HTTP API 调用"
             android:textSize="11sp"
             android:textColor="#999999"
             android:lineSpacingExtra="2dp"
