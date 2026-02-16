@@ -15,6 +15,9 @@
     <!-- 通知权限 (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- 悬浮窗权限（用于坐标选择蒙层） -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- 查询所有包（Android 11+ 需要此权限才能检测微信是否安装） -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />

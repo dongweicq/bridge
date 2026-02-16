@@ -33,21 +33,30 @@ class WeChatActionEngine {
         private const val DELAY_SEARCH_RESULT = 1500L   // 等待搜索结果
 
         // 预设坐标（屏幕比例 0.0-1.0）
-        // 这些坐标基于微信8.0.x版本截图分析
+        // 这些坐标现在从 ConfigManager 读取，可以在 APP 中配置
         private data class CoordinateRatio(val xRatio: Float, val yRatio: Float)
 
-        // 微信首页元素坐标
-        private val COORD_SEARCH_BTN = CoordinateRatio(0.845f, 0.075f)     // 右上角搜索按钮
-        private val COORD_SEARCH_INPUT = CoordinateRatio(0.50f, 0.05f)    // 搜索输入框（顶部中间）
-        private val COORD_FIRST_CONTACT = CoordinateRatio(0.50f, 0.213f)  // 搜索结果第一个联系人
-        private val COORD_MESSAGE_INPUT = CoordinateRatio(0.35f, 0.955f)  // 消息输入框（底部偏左）
-        private val COORD_SEND_BTN = CoordinateRatio(0.92f, 0.955f)       // 发送按钮（底部右侧）
-
-        // 输入法键盘上的剪贴板区域坐标
-        // 注意：输入法是独立APP，无法通过无障碍访问，只能用坐标点击
-        // 根据截图分析：剪贴板内容显示在键盘上方中间位置
-        private val COORD_IME_CLIPBOARD = CoordinateRatio(0.50f, 0.65f)   // 输入法剪贴板（键盘上方中间）
+        // 搜索输入框固定位置（顶部中间，不需要配置）
+        private val COORD_SEARCH_INPUT = CoordinateRatio(0.50f, 0.05f)
     }
+
+    /**
+     * 从 ConfigManager 获取坐标（通过 service 作为 Context）
+     */
+    private fun getSearchBtnCoord(service: BridgeAccessibilityService) =
+        CoordinateRatio(ConfigManager.getSearchBtnX(service), ConfigManager.getSearchBtnY(service))
+
+    private fun getImeClipboardCoord(service: BridgeAccessibilityService) =
+        CoordinateRatio(ConfigManager.getImeClipboardX(service), ConfigManager.getImeClipboardY(service))
+
+    private fun getContactCoord(service: BridgeAccessibilityService) =
+        CoordinateRatio(ConfigManager.getContactX(service), ConfigManager.getContactY(service))
+
+    private fun getMsgInputCoord(service: BridgeAccessibilityService) =
+        CoordinateRatio(ConfigManager.getMsgInputX(service), ConfigManager.getMsgInputY(service))
+
+    private fun getSendBtnCoord(service: BridgeAccessibilityService) =
+        CoordinateRatio(ConfigManager.getSendBtnX(service), ConfigManager.getSendBtnY(service))
 
     /**
      * 执行发送消息任务
@@ -128,8 +137,8 @@ class WeChatActionEngine {
             if (retryCount > maxRetries) {
                 Log.e(TAG, "无法获取有效的根节点")
                 // 无法获取节点时，使用坐标点击作为回退
-                Log.d(TAG, "使用预设坐标点击搜索按钮")
-                return clickByCoordinate(service, COORD_SEARCH_BTN, "搜索按钮")
+                Log.d(TAG, "使用配置坐标点击搜索按钮")
+                return clickByCoordinate(service, getSearchBtnCoord(service), "搜索按钮")
             }
             Log.d(TAG, "等待微信界面加载... ($retryCount/$maxRetries)")
             delay(500)
@@ -168,10 +177,10 @@ class WeChatActionEngine {
             if (searchBtn != null) Log.d(TAG, "通过位置找到搜索按钮图标")
         }
 
-        // 方式5: 使用预设坐标回退
+        // 方式5: 使用配置坐标回退
         if (searchBtn == null) {
-            Log.d(TAG, "所有节点查找方式失败，使用预设坐标")
-            return clickByCoordinate(service, COORD_SEARCH_BTN, "搜索按钮")
+            Log.d(TAG, "所有节点查找方式失败，使用配置坐标")
+            return clickByCoordinate(service, getSearchBtnCoord(service), "搜索按钮")
         }
 
         return if (service.clickNode(searchBtn)) {
@@ -180,7 +189,7 @@ class WeChatActionEngine {
         } else {
             // 节点点击失败，尝试坐标点击
             Log.w(TAG, "节点点击失败，尝试坐标点击")
-            clickByCoordinate(service, COORD_SEARCH_BTN, "搜索按钮")
+            clickByCoordinate(service, getSearchBtnCoord(service), "搜索按钮")
         }
     }
 
@@ -305,7 +314,7 @@ class WeChatActionEngine {
 
         if (root == null) {
             Log.w(TAG, "无法获取界面，尝试坐标点击第一个联系人")
-            return clickByCoordinate(service, COORD_FIRST_CONTACT, "第一个联系人")
+            return clickByCoordinate(service, getContactCoord(service), "第一个联系人")
         }
 
         // 查找包含联系人名称的节点
@@ -314,7 +323,7 @@ class WeChatActionEngine {
         if (nodes.isEmpty()) {
             Log.w(TAG, "找不到联系人节点: $name，尝试坐标点击")
             // 使用坐标点击第一个搜索结果
-            return clickByCoordinate(service, COORD_FIRST_CONTACT, "第一个联系人")
+            return clickByCoordinate(service, getContactCoord(service), "第一个联系人")
         }
 
         // 过滤出聊天项（排除搜索框本身）
@@ -325,7 +334,7 @@ class WeChatActionEngine {
 
         if (contactNodes.isEmpty()) {
             Log.w(TAG, "过滤后联系人节点为空，尝试坐标点击")
-            return clickByCoordinate(service, COORD_FIRST_CONTACT, "第一个联系人")
+            return clickByCoordinate(service, getContactCoord(service), "第一个联系人")
         }
 
         if (contactNodes.size > 1) {
@@ -343,7 +352,7 @@ class WeChatActionEngine {
             TaskResult.ok("已打开聊天")
         } else {
             Log.w(TAG, "节点点击联系人失败，尝试坐标点击")
-            clickByCoordinate(service, COORD_FIRST_CONTACT, "第一个联系人")
+            clickByCoordinate(service, getContactCoord(service), "第一个联系人")
         }
     }
 
@@ -375,8 +384,8 @@ class WeChatActionEngine {
 
         // 步骤2: 点击消息输入框
         val screenBounds = service.getScreenBounds()
-        val inputX = (screenBounds.width() * COORD_MESSAGE_INPUT.xRatio).toInt()
-        val inputY = (screenBounds.height() * COORD_MESSAGE_INPUT.yRatio).toInt()
+        val inputX = (screenBounds.width() * ConfigManager.getMsgInputX(service)).toInt()
+        val inputY = (screenBounds.height() * ConfigManager.getMsgInputY(service)).toInt()
 
         if (!service.clickAt(inputX, inputY)) {
             return TaskResult.fail("无法点击消息输入框")
@@ -456,7 +465,7 @@ class WeChatActionEngine {
         // 使用坐标点击作为回退
         if (sendBtn == null) {
             Log.d(TAG, "找不到发送按钮节点，使用坐标点击")
-            return clickByCoordinate(service, COORD_SEND_BTN, "发送按钮")
+            return clickByCoordinate(service, getSendBtnCoord(service), "发送按钮")
         }
 
         // 确保按钮可见且可点击
@@ -464,7 +473,7 @@ class WeChatActionEngine {
 
         if (clickableBtn == null) {
             Log.w(TAG, "发送按钮不可点击，尝试坐标点击")
-            return clickByCoordinate(service, COORD_SEND_BTN, "发送按钮")
+            return clickByCoordinate(service, getSendBtnCoord(service), "发送按钮")
         }
 
         return if (service.clickNode(clickableBtn)) {
@@ -472,7 +481,7 @@ class WeChatActionEngine {
             TaskResult.ok("消息已发送")
         } else {
             Log.w(TAG, "节点点击发送按钮失败，尝试坐标点击")
-            clickByCoordinate(service, COORD_SEND_BTN, "发送按钮")
+            clickByCoordinate(service, getSendBtnCoord(service), "发送按钮")
         }
     }
 

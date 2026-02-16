@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000">
+
+    <!-- 点击位置标记 -->
+    <ImageView
+        android:id="@+id/crosshairImage"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_mylocation"
+        android:visibility="gone"
+        android:layout_gravity="top|start"/>
+
+    <!-- 底部控制面板 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/instructionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="点击屏幕选择位置"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/coordinateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X: --  Y: --"
+            android:textColor="#4CAF50"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/cancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="取消"
+                android:backgroundTint="#9E9E9E"
+                android:layout_marginEnd="32dp"/>
+
+            <Button
+                android:id="@+id/confirmButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="确定"
+                android:backgroundTint="#4CAF50"
+                android:enabled="false"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
