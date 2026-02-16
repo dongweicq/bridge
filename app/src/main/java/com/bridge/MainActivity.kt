@@ -108,6 +108,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.testSendBtn).setOnClickListener {
             testSend()
         }
+
+        // 工具管理按钮
+        findViewById<Button>(R.id.toolManagerBtn).setOnClickListener {
+            startActivity(Intent(this, ToolManagerActivity::class.java))
+        }
     }
 
     private fun startBridgeService() {

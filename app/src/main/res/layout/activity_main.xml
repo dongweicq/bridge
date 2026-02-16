@@ -61,6 +61,14 @@
             android:backgroundTint="#4CAF50"
             android:layout_marginTop="4dp"/>
 
+        <Button
+            android:id="@+id/toolManagerBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="工具管理"
+            android:backgroundTint="#9C27B0"
+            android:layout_marginTop="4dp"/>
+
         <!-- 分隔线 -->
         <View
             android:layout_width="match_parent"

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="编辑工具"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="工具名称"/>
+
+    <EditText
+        android:id="@+id/toolNameEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="例如：搜索按钮"
+        android:inputType="text"
+        android:maxLines="1"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="描述"
+        android:layout_marginTop="8dp"/>
+
+    <EditText
+        android:id="@+id/toolDescEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="例如：微信首页右上角放大镜"
+        android:inputType="text"
+        android:maxLines="2"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="坐标（点击获取按钮在屏幕上选择）"
+        android:layout_marginTop="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X:"/>
+
+        <EditText
+            android:id="@+id/toolXEdit"
+            android:layout_width="80dp"
+            android:layout_height="36dp"
+            android:inputType="numberDecimal"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:layout_marginStart="4dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y:"
+            android:layout_marginStart="16dp"/>
+
+        <EditText
+            android:id="@+id/toolYEdit"
+            android:layout_width="80dp"
+            android:layout_height="36dp"
+            android:inputType="numberDecimal"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:layout_marginStart="4dp"/>
+
+        <Button
+            android:id="@+id/pickCoordBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="获取"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="#2196F3"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="前置工具（按选中顺序执行）"
+        android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="长按可拖动排序"
+        android:textSize="11sp"
+        android:textColor="#999999"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/preToolsList"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:background="#F5F5F5"
+        android:padding="4dp"/>
+
+    <TextView
+        android:id="@+id/addPreToolHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="点击下方按钮添加前置工具"
+        android:textSize="12sp"
+        android:textColor="#999999"
+        android:gravity="center"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/addPreToolBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="添加前置工具"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginTop="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/cancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="取消"
+            android:backgroundTint="#9E9E9E"/>
+
+        <Button
+            android:id="@+id/saveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="保存"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="#4CAF50"/>
+    </LinearLayout>
+
+</LinearLayout>

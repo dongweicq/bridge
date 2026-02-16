@@ -44,6 +44,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ToolManagerActivity"
+            android:exported="false"
+            android:label="工具管理"
+            android:theme="@style/Theme.Bridge" />
+
         <!-- 前台服务 -->
         <service
             android:name=".BridgeService"
