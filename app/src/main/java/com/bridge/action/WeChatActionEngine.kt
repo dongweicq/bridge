@@ -97,11 +97,24 @@ class WeChatActionEngine {
      * 打开搜索
      */
     private suspend fun openSearch(service: BridgeAccessibilityService): TaskResult {
-        // 先打印所有节点信息用于调试
-        val root = service.getRootNode()
-        if (root != null) {
-            dumpNodeInfo(root, 0)
+        // 等待并重试获取有效的根节点
+        var root = service.getRootNode()
+        var retryCount = 0
+        val maxRetries = 5
+
+        while (root == null || root.bounds == android.graphics.Rect(0, 0, 0, 0)) {
+            retryCount++
+            if (retryCount > maxRetries) {
+                Log.e(TAG, "无法获取有效的根节点")
+                return TaskResult.fail("无法获取微信界面")
+            }
+            Log.d(TAG, "等待微信界面加载... ($retryCount/$maxRetries)")
+            delay(500)
+            root = service.getRootNode()
         }
+
+        // 打印节点信息用于调试
+        dumpNodeInfo(root, 0)
 
         // 方式1: 尝试点击搜索按钮（按ID）
         var searchBtn = service.findNodeById(ID_SEARCH_BTN)
@@ -113,11 +126,11 @@ class WeChatActionEngine {
 
         if (searchBtn == null) {
             // 方式3: 查找带放大镜图标的按钮
-            searchBtn = root?.let { findNodeByDesc(it, "搜索") }
+            searchBtn = findNodeByDesc(root, "搜索")
         }
 
         // 方式4: 查找 ImageView 或 ImageButton（搜索图标）
-        if (searchBtn == null && root != null) {
+        if (searchBtn == null) {
             searchBtn = findImageButton(root)
         }
 
