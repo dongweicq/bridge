@@ -2,6 +2,7 @@ package com.bridge
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -204,7 +205,8 @@ class ToolManagerActivity : AppCompatActivity() {
         }
 
         // 前置工具列表适配器
-        val preToolAdapter = PreToolAdapter(
+        lateinit var preToolAdapter: PreToolAdapter
+        preToolAdapter = PreToolAdapter(
             tools = selectedPreTools,
             onRemove = { t ->
                 selectedPreTools.remove(t)
