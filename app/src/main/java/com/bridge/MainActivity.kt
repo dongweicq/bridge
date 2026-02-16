@@ -395,6 +395,7 @@ class MainActivity : AppCompatActivity() {
                     val y = (screenBounds.height() * ConfigManager.getMsgInputY(this)).toInt()
                     android.util.Log.d("Bridge", "步骤4点击: ($x, $y)")
                     service.clickAt(x, y)
+                    delayKeyboardShow()  // 等待键盘弹出
                     runOnUiThread { Toast.makeText(this, "已点击步骤4: ($x, $y)", Toast.LENGTH_SHORT).show() }
                     return@Thread
                 }
