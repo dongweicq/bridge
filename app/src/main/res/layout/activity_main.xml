@@ -1,83 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    tools:context=".MainActivity">
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Bridge"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        android:padding="24dp"
+        tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/subtitleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OpenClaw 微信自动化桥接"
-        android:textSize="14sp"
-        android:textColor="#666666"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bridge"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"/>
 
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:fontFamily="monospace"
-        android:background="#F5F5F5"
-        android:padding="16dp"
-        android:lineSpacingExtra="4dp"
-        app:layout_constraintTop_toBottomOf="@id/subtitleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        <TextView
+            android:id="@+id/subtitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OpenClaw 微信自动化桥接"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            app:layout_constraintTop_toBottomOf="@id/titleText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="4dp"/>
 
-    <Button
-        android:id="@+id/accessibilityBtn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="启用无障碍服务"
-        app:layout_constraintTop_toBottomOf="@id/statusText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:background="#F5F5F5"
+            android:padding="16dp"
+            android:lineSpacingExtra="4dp"
+            app:layout_constraintTop_toBottomOf="@id/subtitleText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"/>
 
-    <Button
-        android:id="@+id/testPingBtn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="测试 HTTP 服务"
-        android:backgroundTint="#4CAF50"
-        app:layout_constraintTop_toBottomOf="@id/accessibilityBtn"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        <Button
+            android:id="@+id/accessibilityBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="启用无障碍服务"
+            app:layout_constraintTop_toBottomOf="@id/statusText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"/>
 
-    <TextView
-        android:id="@+id/helpText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="使用说明:\n1. 点击上方按钮启用无障碍服务\n2. 在列表中找到 Bridge 并开启\n3. 返回此应用查看状态\n4. OpenClaw 可通过 HTTP API 调用"
-        android:textSize="12sp"
-        android:textColor="#999999"
-        android:lineSpacingExtra="4dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="24dp"/>
+        <Button
+            android:id="@+id/testPingBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="测试 HTTP 服务"
+            android:backgroundTint="#4CAF50"
+            app:layout_constraintTop_toBottomOf="@id/accessibilityBtn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- 坐标配置区域 -->
+        <TextView
+            android:id="@+id/configTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IME 剪贴板坐标配置"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/testPingBtn"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="24dp"/>
+
+        <TextView
+            android:id="@+id/configHint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="用于点击输入法键盘上的剪贴板内容。X/Y 为屏幕比例 (0.0-1.0)"
+            android:textSize="12sp"
+            android:textColor="#999999"
+            app:layout_constraintTop_toBottomOf="@id/configTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/labelX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X:"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/configHint"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/inputX"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:text="0.50"
+            android:hint="0.0 - 1.0"
+            app:layout_constraintTop_toBottomOf="@id/configHint"
+            app:layout_constraintStart_toEndOf="@id/labelX"
+            app:layout_constraintEnd_toStartOf="@id/labelY"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:id="@+id/labelY"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y:"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/configHint"
+            app:layout_constraintEnd_toStartOf="@id/inputY"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp"/>
+
+        <EditText
+            android:id="@+id/inputY"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:text="0.65"
+            android:hint="0.0 - 1.0"
+            app:layout_constraintTop_toBottomOf="@id/configHint"
+            app:layout_constraintStart_toEndOf="@id/labelY"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/configButtons"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/inputX"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/saveConfigBtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="保存配置"
+                android:backgroundTint="#2196F3"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/testClickBtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="测试点击"
+                android:backgroundTint="#FF9800"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/resetConfigBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="重置为默认值"
+            android:backgroundTint="#9E9E9E"
+            app:layout_constraintTop_toBottomOf="@id/configButtons"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/helpText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="使用说明:\n1. 点击上方按钮启用无障碍服务\n2. 在列表中找到 Bridge 并开启\n3. 返回此应用查看状态\n4. OpenClaw 可通过 HTTP API 调用\n\n调试坐标:\n1. 打开微信搜索，让输入法显示\n2. 回到 Bridge 调整坐标\n3. 点击\"测试点击\"观察效果\n4. 重复调整直到点击正确位置"
+            android:textSize="12sp"
+            android:textColor="#999999"
+            android:lineSpacingExtra="4dp"
+            app:layout_constraintTop_toBottomOf="@id/resetConfigBtn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

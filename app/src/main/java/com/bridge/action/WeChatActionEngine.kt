@@ -5,6 +5,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import com.bridge.BridgeAccessibilityService
 import com.bridge.model.Task
 import com.bridge.model.TaskResult
+import com.bridge.util.ConfigManager
 import kotlinx.coroutines.delay
 
 /**
@@ -274,10 +275,13 @@ class WeChatActionEngine {
         // 步骤2: 点击输入法键盘上的剪贴板区域
         // 输入法是独立APP，剪贴板内容（wjcszz）显示在QWE键盘上方
         // 我们无法通过无障碍访问输入法界面，只能用坐标点击
-        val imeX = (screenBounds.width() * COORD_IME_CLIPBOARD.xRatio).toInt()
-        val imeY = (screenBounds.height() * COORD_IME_CLIPBOARD.yRatio).toInt()
+        // 从配置读取坐标（可在 APP 中调整）
+        val imeClipboardX = ConfigManager.getImeClipboardX(service)
+        val imeClipboardY = ConfigManager.getImeClipboardY(service)
+        val imeX = (screenBounds.width() * imeClipboardX).toInt()
+        val imeY = (screenBounds.height() * imeClipboardY).toInt()
 
-        Log.d(TAG, "点击输入法剪贴板区域: ($imeX, $imeY)")
+        Log.d(TAG, "点击输入法剪贴板区域: ($imeX, $imeY) [配置: X=$imeClipboardX, Y=$imeClipboardY]")
 
         // 等待剪贴板内容显示在键盘上（需要时间加载）
         delay(1000)
