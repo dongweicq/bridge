@@ -137,6 +137,7 @@ This project uses GitHub Actions for CI/CD. **Do NOT build locally** - always us
 
 4. **Install APK via ADB**:
    ```bash
+   adb uninstall #先删除已有APP
    adb install -r app-debug.apk
    adb shell am start -n com.bridge/.MainActivity
    ```

@@ -73,6 +73,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.step4PickBtn).setOnClickListener { pickCoordinate(4) }
         findViewById<Button>(R.id.step5PickBtn).setOnClickListener { pickCoordinate(5) }
 
+        // 5个步骤的测试按钮
+        findViewById<Button>(R.id.step1TestBtn).setOnClickListener { testCoordinate(1) }
+        findViewById<Button>(R.id.step2TestBtn).setOnClickListener { testCoordinate(2) }
+        findViewById<Button>(R.id.step3TestBtn).setOnClickListener { testCoordinate(3) }
+        findViewById<Button>(R.id.step4TestBtn).setOnClickListener { testCoordinate(4) }
+        findViewById<Button>(R.id.step5TestBtn).setOnClickListener { testCoordinate(5) }
+
         // 保存和重置按钮
         findViewById<Button>(R.id.saveConfigBtn).setOnClickListener {
             saveConfig()
@@ -110,13 +117,22 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val versionName = packageInfo.versionName
+        val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            packageInfo.versionCode.toLong()
+        }
+
         val status = buildString {
             appendLine("Bridge 状态")
             appendLine()
             appendLine("HTTP: 127.0.0.1:${BridgeApp.HTTP_PORT}")
             appendLine("无障碍: ${if (isAccessibilityEnabled) "✓" else "✗"}")
             appendLine("悬浮窗: ${if (hasOverlayPermission) "✓" else "✗"}")
-            appendLine("版本: ${packageManager.getPackageInfo(packageName, 0).versionName}")
+            appendLine("版本: $versionName ($versionCode)")
         }
 
         statusText.text = status
@@ -254,7 +270,60 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 执行前置步骤
+    // 测试坐标（执行前置步骤并点击目标位置）
+    private fun testCoordinate(step: Int) {
+        // 检查无障碍服务
+        val service = BridgeAccessibilityService.instance
+        if (service == null) {
+            Toast.makeText(this, "请先启用无障碍服务", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 先保存当前配置
+        saveConfig()
+
+        Toast.makeText(this, "正在测试...", Toast.LENGTH_SHORT).show()
+
+        // 在协程中执行前置步骤并点击
+        CoroutineScope(Dispatchers.Main).launch {
+            val success = executePreStepsForTest(step, service)
+            if (success) {
+                // 点击目标位置
+                val screenBounds = service.getScreenBounds()
+                val x: Int
+                val y: Int
+                when (step) {
+                    1 -> {
+                        x = (screenBounds.width() * ConfigManager.getSearchBtnX(this@MainActivity)).toInt()
+                        y = (screenBounds.height() * ConfigManager.getSearchBtnY(this@MainActivity)).toInt()
+                    }
+                    2 -> {
+                        x = (screenBounds.width() * ConfigManager.getImeClipboardX(this@MainActivity)).toInt()
+                        y = (screenBounds.height() * ConfigManager.getImeClipboardY(this@MainActivity)).toInt()
+                    }
+                    3 -> {
+                        x = (screenBounds.width() * ConfigManager.getContactX(this@MainActivity)).toInt()
+                        y = (screenBounds.height() * ConfigManager.getContactY(this@MainActivity)).toInt()
+                    }
+                    4 -> {
+                        x = (screenBounds.width() * ConfigManager.getMsgInputX(this@MainActivity)).toInt()
+                        y = (screenBounds.height() * ConfigManager.getMsgInputY(this@MainActivity)).toInt()
+                    }
+                    5 -> {
+                        x = (screenBounds.width() * ConfigManager.getSendBtnX(this@MainActivity)).toInt()
+                        y = (screenBounds.height() * ConfigManager.getSendBtnY(this@MainActivity)).toInt()
+                    }
+                    else -> return@launch
+                }
+                service.clickAt(x, y)
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "已点击 ($x, $y)", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // 执行前置步骤（用于获取坐标）
     private suspend fun executePreSteps(step: Int, service: BridgeAccessibilityService): Boolean {
         return withContext(Dispatchers.Main) {
             try {
@@ -264,16 +333,28 @@ class MainActivity : AppCompatActivity() {
 
                 if (step == 1) return@withContext true
 
-                // 步骤2：点击搜索按钮
+                // 步骤1b：点击搜索按钮
                 val screenBounds = service.getScreenBounds()
                 val x1 = (screenBounds.width() * ConfigManager.getSearchBtnX(this@MainActivity)).toInt()
                 val y1 = (screenBounds.height() * ConfigManager.getSearchBtnY(this@MainActivity)).toInt()
                 service.clickAt(x1, y1)
                 delay(1000)
 
-                if (step == 2) return@withContext true
+                // 步骤2需要：设置剪贴板内容，点击输入框触发输入法
+                if (step == 2) {
+                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
+                    delay(500)
 
-                // 步骤2b：点击输入法剪贴板（需要先设置剪贴板内容）
+                    // 点击搜索输入框触发输入法
+                    val inputX = (screenBounds.width() * 0.50f).toInt()
+                    val inputY = (screenBounds.height() * 0.05f).toInt()
+                    service.clickAt(inputX, inputY)
+                    delay(1500) // 等待输入法弹出
+                    return@withContext true
+                }
+
+                // 步骤2b：设置剪贴板并点击输入法剪贴板（用于后续步骤）
                 val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
                 delay(500)
@@ -299,6 +380,93 @@ class MainActivity : AppCompatActivity() {
                 delay(1000)
 
                 if (step == 4) return@withContext true
+
+                // 步骤4：点击消息输入框
+                val x4 = (screenBounds.width() * ConfigManager.getMsgInputX(this@MainActivity)).toInt()
+                val y4 = (screenBounds.height() * ConfigManager.getMsgInputY(this@MainActivity)).toInt()
+                service.clickAt(x4, y4)
+                delay(500)
+
+                if (step == 5) {
+                    // 步骤5需要隐藏键盘
+                    service.goBack()
+                    delay(300)
+                    return@withContext true
+                }
+
+                true
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "执行前置步骤失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                false
+            }
+        }
+    }
+
+    // 执行前置步骤（用于测试坐标）
+    private suspend fun executePreStepsForTest(step: Int, service: BridgeAccessibilityService): Boolean {
+        return withContext(Dispatchers.Main) {
+            try {
+                // 步骤1：打开微信
+                service.openWeChat()
+                delay(2000)
+
+                if (step == 1) return@withContext true
+
+                // 步骤1b：点击搜索按钮
+                val screenBounds = service.getScreenBounds()
+                val x1 = (screenBounds.width() * ConfigManager.getSearchBtnX(this@MainActivity)).toInt()
+                val y1 = (screenBounds.height() * ConfigManager.getSearchBtnY(this@MainActivity)).toInt()
+                service.clickAt(x1, y1)
+                delay(1000)
+
+                // 步骤2需要：设置剪贴板内容，点击输入框触发输入法
+                if (step == 2) {
+                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
+                    delay(500)
+
+                    // 点击搜索输入框触发输入法
+                    val inputX = (screenBounds.width() * 0.50f).toInt()
+                    val inputY = (screenBounds.height() * 0.05f).toInt()
+                    service.clickAt(inputX, inputY)
+                    delay(1500) // 等待输入法弹出
+                    return@withContext true
+                }
+
+                // 后续步骤的准备工作
+                val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, "test"))
+                delay(500)
+
+                // 点击搜索输入框触发输入法
+                val inputX = (screenBounds.width() * 0.50f).toInt()
+                val inputY = (screenBounds.height() * 0.05f).toInt()
+                service.clickAt(inputX, inputY)
+                delay(1000)
+
+                if (step == 3) {
+                    // 步骤3需要先点击剪贴板（输入搜索内容）
+                    val x2 = (screenBounds.width() * ConfigManager.getImeClipboardX(this@MainActivity)).toInt()
+                    val y2 = (screenBounds.height() * ConfigManager.getImeClipboardY(this@MainActivity)).toInt()
+                    service.clickAt(x2, y2)
+                    delay(500)
+                    return@withContext true
+                }
+
+                // 点击输入法剪贴板
+                val x2 = (screenBounds.width() * ConfigManager.getImeClipboardX(this@MainActivity)).toInt()
+                val y2 = (screenBounds.height() * ConfigManager.getImeClipboardY(this@MainActivity)).toInt()
+                service.clickAt(x2, y2)
+                delay(500)
+
+                if (step == 4) {
+                    // 步骤4需要先进入聊天界面
+                    val x3 = (screenBounds.width() * ConfigManager.getContactX(this@MainActivity)).toInt()
+                    val y3 = (screenBounds.height() * ConfigManager.getContactY(this@MainActivity)).toInt()
+                    service.clickAt(x3, y3)
+                    delay(1000)
+                    return@withContext true
+                }
 
                 // 步骤4：点击消息输入框
                 val x4 = (screenBounds.width() * ConfigManager.getMsgInputX(this@MainActivity)).toInt()

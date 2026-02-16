@@ -153,6 +153,15 @@
                     android:textSize="12sp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#2196F3"/>
+
+                <Button
+                    android:id="@+id/step1TestBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="测试"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FF9800"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -223,6 +232,15 @@
                     android:textSize="12sp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#2196F3"/>
+
+                <Button
+                    android:id="@+id/step2TestBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="测试"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FF9800"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -293,6 +311,15 @@
                     android:textSize="12sp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#2196F3"/>
+
+                <Button
+                    android:id="@+id/step3TestBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="测试"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FF9800"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -363,6 +390,15 @@
                     android:textSize="12sp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#2196F3"/>
+
+                <Button
+                    android:id="@+id/step4TestBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="测试"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FF9800"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -433,6 +469,15 @@
                     android:textSize="12sp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#2196F3"/>
+
+                <Button
+                    android:id="@+id/step5TestBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="测试"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FF9800"/>
             </LinearLayout>
         </LinearLayout>
 
