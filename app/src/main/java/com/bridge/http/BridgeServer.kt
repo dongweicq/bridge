@@ -41,6 +41,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 uri == "/health" && method == Method.GET -> handleHealth()
                 uri == "/send_message" && method == Method.POST -> handleSendMessage(session)
                 uri.startsWith("/task/") && method == Method.GET -> handleTaskStatus(uri)
+                uri.startsWith("/debug/ui_tree") && method == Method.GET -> handleDebugUITree(session)
                 else -> json(Response.Status.NOT_FOUND, mapOf("error" to "Not Found"))
             }
         } catch (e: Exception) {
@@ -207,6 +208,41 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
             "application/json",
             gson.toJson(data)
         )
+    }
+
+    /**
+     * GET /debug/ui_tree - 调试接口，返回UI树结构
+     * 参数:
+     *   - package: 可选，过滤指定包名的节点（如 com.tencent.mm）
+     *   - depth: 可选，最大递归深度，默认10
+     */
+    private fun handleDebugUITree(session: IHTTPSession): Response {
+        val params = session.parms
+        val packageFilter = params["package"]
+        val maxDepth = params["depth"]?.toIntOrNull() ?: 10
+
+        val service = BridgeAccessibilityService.instance
+        if (service == null) {
+            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
+                "status" to "error",
+                "error" to "Accessibility service not enabled"
+            ))
+        }
+
+        return try {
+            val uiTree = service.dumpUITreeToJson(packageFilter, maxDepth)
+            newFixedLengthResponse(
+                Response.Status.OK,
+                "application/json",
+                uiTree.toString()
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to dump UI tree", e)
+            json(Response.Status.INTERNAL_ERROR, mapOf(
+                "status" to "error",
+                "error" to (e.message ?: "Failed to dump UI tree")
+            ))
+        }
     }
 
     /**

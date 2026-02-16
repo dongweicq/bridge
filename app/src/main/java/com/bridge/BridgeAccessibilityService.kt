@@ -18,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 
 class BridgeAccessibilityService : AccessibilityService() {
 
@@ -183,6 +185,25 @@ class BridgeAccessibilityService : AccessibilityService() {
     }
 
     /**
+     * 执行滑动手势
+     */
+    fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, durationMs: Long = 300): Boolean {
+        return try {
+            val gestureBuilder = GestureDescription.Builder()
+            val path = android.graphics.Path()
+            path.moveTo(startX.toFloat(), startY.toFloat())
+            path.lineTo(endX.toFloat(), endY.toFloat())
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 0, durationMs))
+
+            val gesture = gestureBuilder.build()
+            dispatchGesture(gesture, null, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to swipe", e)
+            false
+        }
+    }
+
+    /**
      * 获取屏幕尺寸
      */
     fun getScreenBounds(): Rect {
@@ -196,5 +217,98 @@ class BridgeAccessibilityService : AccessibilityService() {
      */
     fun getRootNode(): AccessibilityNodeInfo? {
         return rootInActiveWindow
+    }
+
+    /**
+     * 将 UI 树转换为 JSON（用于调试）
+     * @param packageFilter 可选的包名过滤
+     * @param maxDepth 最大递归深度
+     */
+    fun dumpUITreeToJson(packageFilter: String? = null, maxDepth: Int = 10): JSONObject {
+        val result = JSONObject()
+        result.put("timestamp", System.currentTimeMillis())
+        result.put("package_filter", packageFilter)
+
+        val root = rootInActiveWindow
+        if (root == null) {
+            result.put("error", "No active window")
+            result.put("node_count", 0)
+            return result
+        }
+
+        val screenBounds = Rect()
+        root.getBoundsInScreen(screenBounds)
+        result.put("screen_bounds", JSONObject().apply {
+            put("left", screenBounds.left)
+            put("top", screenBounds.top)
+            put("right", screenBounds.right)
+            put("bottom", screenBounds.bottom)
+            put("width", screenBounds.width())
+            put("height", screenBounds.height())
+        })
+
+        val nodeCount = intArrayOf(0)
+        val nodesArray = JSONArray()
+        dumpNodeToJson(root, nodesArray, 0, maxDepth, nodeCount, packageFilter)
+        result.put("nodes", nodesArray)
+        result.put("node_count", nodeCount[0])
+
+        return result
+    }
+
+    /**
+     * 递归转换单个节点为 JSON
+     */
+    private fun dumpNodeToJson(
+        node: AccessibilityNodeInfo,
+        nodesArray: JSONArray,
+        depth: Int,
+        maxDepth: Int,
+        nodeCount: IntArray,
+        packageFilter: String?
+    ) {
+        if (depth > maxDepth) return
+
+        nodeCount[0]++
+
+        val nodeJson = JSONObject()
+        val bounds = Rect()
+        node.getBoundsInScreen(bounds)
+
+        nodeJson.put("depth", depth)
+        nodeJson.put("class_name", node.className?.toString() ?: "")
+        nodeJson.put("text", node.text?.toString() ?: "")
+        nodeJson.put("content_desc", node.contentDescription?.toString() ?: "")
+        nodeJson.put("view_id", node.viewIdResourceName ?: "")
+        nodeJson.put("hint", node.hintText?.toString() ?: "")
+        nodeJson.put("package", node.packageName?.toString() ?: "")
+        nodeJson.put("clickable", node.isClickable)
+        nodeJson.put("editable", node.isEditable)
+        nodeJson.put("enabled", node.isEnabled)
+        nodeJson.put("scrollable", node.isScrollable)
+        nodeJson.put("focusable", node.isFocusable)
+        nodeJson.put("bounds", JSONObject().apply {
+            put("left", bounds.left)
+            put("top", bounds.top)
+            put("right", bounds.right)
+            put("bottom", bounds.bottom)
+        })
+
+        nodesArray.put(nodeJson)
+
+        // 递归处理子节点
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i) ?: continue
+
+            // 如果有包名过滤，检查是否匹配
+            if (packageFilter != null) {
+                val childPackage = child.packageName?.toString() ?: ""
+                if (childPackage.isNotEmpty() && !childPackage.contains(packageFilter)) {
+                    continue
+                }
+            }
+
+            dumpNodeToJson(child, nodesArray, depth + 1, maxDepth, nodeCount, packageFilter)
+        }
     }
 }
