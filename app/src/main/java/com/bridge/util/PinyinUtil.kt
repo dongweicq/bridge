@@ -17,6 +17,7 @@ object PinyinUtil {
         // C
         '才' to 'c', '成' to 'c', '出' to 'c', '从' to 'c', '存' to 'c',
         '错' to 'c', '长' to 'c', '城' to 'c', '传' to 'c', '次' to 'c',
+        '输' to 's', // 输
         // D
         '大' to 'd', '到' to 'd', '的' to 'd', '地' to 'd', '点' to 'd',
         '电' to 'd', '东' to 'd', '动' to 'd', '都' to 'd', '对' to 'd',

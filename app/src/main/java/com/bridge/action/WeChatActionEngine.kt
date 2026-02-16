@@ -232,7 +232,7 @@ class WeChatActionEngine {
 
     /**
      * 输入搜索词
-     * 由于微信阻止无障碍输入，使用剪贴板+输入法工具栏粘贴方式
+     * 由于微信阻止无障碍输入，使用剪贴板+长按粘贴方式
      */
     private suspend fun inputSearchQuery(service: BridgeAccessibilityService, query: String): TaskResult {
         // 将中文转换为拼音首字母
@@ -257,16 +257,27 @@ class WeChatActionEngine {
         if (!service.clickAt(inputX, inputY)) {
             return TaskResult.fail("无法点击搜索输入框")
         }
-        delay(500)
+        delay(300)
 
-        // 点击输入法工具栏的粘贴按钮
-        // 输入法工具栏位置约为屏幕高度的 80%
-        val imeToolbarY = (screenBounds.height() * 0.80).toInt()
-        val imeToolbarX = screenBounds.width() / 2
+        // 长按搜索框，等待粘贴菜单弹出
+        Log.d(TAG, "长按搜索框等待粘贴菜单")
+        if (service.longPressAt(inputX, inputY)) {
+            delay(800)
 
-        Log.d(TAG, "点击输入法工具栏粘贴按钮: ($imeToolbarX, $imeToolbarY)")
-        service.clickAt(imeToolbarX, imeToolbarY)
-        delay(500)
+            // 尝试点击粘贴菜单（通常在长按位置下方）
+            val pastePositions = listOf(
+                Pair(inputX, inputY + 80),
+                Pair(inputX, inputY + 100),
+                Pair(inputX, inputY + 120),
+                Pair(inputX, inputY + 150)
+            )
+
+            for ((px, py) in pastePositions) {
+                Log.d(TAG, "尝试点击粘贴位置: ($px, $py)")
+                service.clickAt(px, py)
+                delay(200)
+            }
+        }
 
         // 返回成功，让后续步骤验证
         return TaskResult.ok("已尝试输入拼音: $pinyinInitials")
