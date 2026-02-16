@@ -353,11 +353,13 @@ class MainActivity : AppCompatActivity() {
                 Thread.sleep(500)
 
                 if (step == 3) {
+                    // 等待搜索结果显示
+                    Thread.sleep(1000)
                     val x = (screenBounds.width() * ConfigManager.getContactX(this)).toInt()
                     val y = (screenBounds.height() * ConfigManager.getContactY(this)).toInt()
-                    android.util.Log.d("Bridge", "步骤3点击: ($x, $y)")
-                    service.clickAt(x, y)
-                    runOnUiThread { Toast.makeText(this, "已点击步骤3: ($x, $y)", Toast.LENGTH_SHORT).show() }
+                    android.util.Log.d("Bridge", "步骤3点击联系人: ($x, $y)")
+                    val clicked = service.clickAt(x, y)
+                    runOnUiThread { Toast.makeText(this, "步骤3点击联系人($x, $y): ${if(clicked) "成功" else "失败"}", Toast.LENGTH_SHORT).show() }
                     return@Thread
                 }
 

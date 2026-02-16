@@ -91,17 +91,28 @@ class CoordinatePicker(
         val coordinateText = view.findViewById<TextView>(R.id.coordinateText)
         val confirmButton = view.findViewById<Button>(R.id.confirmButton)
 
-        val x = initialX!! * screenWidth
-        val y = initialY!! * screenHeight
+        // 计算屏幕绝对坐标
+        val screenX = initialX!! * screenWidth
+        val screenY = initialY!! * screenHeight
 
         // 更新显示
         coordinateText.text = String.format("当前: X: %.3f  Y: %.3f", initialX!!, initialY!!)
 
-        // 显示十字标记
+        // 显示十字标记（需要转换为视图相对坐标）
         crosshairImage.visibility = View.VISIBLE
         crosshairImage.post {
-            crosshairImage.x = x - crosshairImage.width / 2
-            crosshairImage.y = y - crosshairImage.height / 2
+            // 获取视图在屏幕上的位置
+            val viewLocation = IntArray(2)
+            view.getLocationOnScreen(viewLocation)
+
+            // 转换为视图相对坐标
+            val viewX = screenX - viewLocation[0]
+            val viewY = screenY - viewLocation[1]
+
+            crosshairImage.x = viewX - crosshairImage.width / 2
+            crosshairImage.y = viewY - crosshairImage.height / 2
+
+            android.util.Log.d("CoordinatePicker", "初始坐标: 屏幕($screenX, $screenY), 视图偏移(${viewLocation[0]}, ${viewLocation[1]}), 相对($viewX, $viewY)")
         }
 
         // 启用确定按钮
