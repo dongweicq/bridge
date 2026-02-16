@@ -44,8 +44,8 @@ class WeChatActionEngine {
 
         // 输入法键盘上的剪贴板区域坐标（QWE键盘上方）
         // 注意：输入法是独立APP，无法通过无障碍访问，只能用坐标点击
-        // 屏幕高度2736，键盘约占底部35%，剪贴板内容在键盘上方约60%位置
-        private val COORD_IME_CLIPBOARD = CoordinateRatio(0.50f, 0.62f)   // 输入法剪贴板内容区域
+        // 根据截图分析：QWE键在Y≈73%-77%，剪贴板内容在Y≈60%-65%
+        private val COORD_IME_CLIPBOARD = CoordinateRatio(0.50f, 0.60f)   // 输入法剪贴板内容区域
     }
 
     /**
