@@ -205,10 +205,30 @@ class BridgeAccessibilityService : AccessibilityService() {
 
     /**
      * 获取屏幕尺寸
+     * 优先使用 rootInActiveWindow，失败时使用 WindowManager 作为备用
      */
     fun getScreenBounds(): Rect {
         val rect = Rect()
+
+        // 方式1: 从 rootInActiveWindow 获取
         rootInActiveWindow?.getBoundsInScreen(rect)
+        if (rect.width() > 0 && rect.height() > 0) {
+            return rect
+        }
+
+        // 方式2: 从 WindowManager 获取（备用）
+        try {
+            val windowManager = getSystemService(WINDOW_SERVICE) as android.view.WindowManager
+            val displayMetrics = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+            rect.set(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels)
+            Log.d(TAG, "getScreenBounds from WindowManager: ${rect.width()}x${rect.height()}")
+            return rect
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get screen bounds from WindowManager", e)
+        }
+
         return rect
     }
 
