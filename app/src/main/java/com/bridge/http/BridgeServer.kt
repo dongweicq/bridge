@@ -4,11 +4,9 @@ import android.util.Log
 import com.bridge.BridgeAccessibilityService
 import com.bridge.BridgeService
 import com.bridge.action.ActionDispatcher
-import com.bridge.model.ReadResult
 import com.bridge.model.Task
 import com.bridge.model.TaskResult
 import com.bridge.model.TaskStatus
-import com.bridge.model.TaskType
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
@@ -42,8 +40,6 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 uri == "/ping" && method == Method.GET -> handlePing()
                 uri == "/health" && method == Method.GET -> handleHealth()
                 uri == "/send_message" && method == Method.POST -> handleSendMessage(session)
-                uri == "/chat_list" && method == Method.GET -> handleChatList(session)
-                uri == "/chat_history" && method == Method.GET -> handleChatHistory(session)
                 uri.startsWith("/task/") && method == Method.GET -> handleTaskStatus(uri)
                 uri.startsWith("/debug/ui_tree") && method == Method.GET -> handleDebugUITree(session)
                 else -> json(Response.Status.NOT_FOUND, mapOf("error" to "Not Found"))
@@ -137,169 +133,14 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         val result = mutableMapOf(
             "id" to task.id,
             "status" to task.status.name.lowercase(),
-            "type" to task.type.name.lowercase()
+            "target" to task.target
         )
-
-        // 添加目标信息
-        if (task.target.isNotEmpty()) {
-            result["target"] = task.target
-        }
-
-        // 添加读取结果
-        if (task.status == TaskStatus.DONE && task.result != null) {
-            result["result"] = mapOf(
-                "success" to task.result!!.success,
-                "source" to task.result!!.source,
-                "total_count" to task.result!!.totalCount,
-                "has_more" to task.result!!.hasMore,
-                "contacts" to task.result!!.contacts,
-                "messages" to task.result!!.messages,
-                "error" to task.result!!.error
-            )
-        }
 
         if (task.status == TaskStatus.FAILED) {
             result["error"] = (task.error ?: "Unknown error")
         }
 
         return json(Response.Status.OK, result)
-    }
-
-    /**
-     * GET /chat_list - 获取联系人列表
-     * 参数:
-     *   - refresh: 是否强制刷新（打开微信读取），默认 false
-     *   - limit: 返回数量限制，默认 50
-     */
-    private fun handleChatList(session: IHTTPSession): Response {
-        val params = session.parms
-        val refresh = params["refresh"]?.toBoolean() ?: false
-        val limit = params["limit"]?.toIntOrNull()?.coerceIn(1, 200) ?: 50
-
-        // 检查无障碍服务
-        if (BridgeAccessibilityService.instance == null) {
-            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
-                "status" to "error",
-                "error" to "Accessibility service not enabled"
-            ))
-        }
-
-        if (refresh) {
-            // 创建任务入队
-            val task = Task(
-                type = TaskType.GET_CONTACTS,
-                refresh = true,
-                limit = limit
-            )
-            tasks[task.id] = task
-
-            // 异步执行
-            executeReadTaskAsync(task)
-
-            return json(Response.Status.OK, mapOf(
-                "status" to "queued",
-                "task_id" to task.id,
-                "message" to "正在打开微信获取联系人列表"
-            ))
-        } else {
-            // 暂时返回空列表
-            return json(Response.Status.OK, mapOf(
-                "status" to "ok",
-                "source" to "empty",
-                "count" to 0,
-                "contacts" to emptyList<Any>()
-            ))
-        }
-    }
-
-    /**
-     * GET /chat_history - 获取会话历史
-     * 参数:
-     *   - target: 联系人名称（必填）
-     *   - limit: 消息数量，默认 20
-     *   - refresh: 是否强制刷新，默认 false
-     */
-    private fun handleChatHistory(session: IHTTPSession): Response {
-        val params = session.parms
-        val target = params["target"]
-        val limit = params["limit"]?.toIntOrNull()?.coerceIn(1, 100) ?: 20
-        val refresh = params["refresh"]?.toBoolean() ?: false
-
-        if (target.isNullOrBlank()) {
-            return json(Response.Status.BAD_REQUEST, mapOf(
-                "status" to "error",
-                "error" to "Missing 'target' parameter"
-            ))
-        }
-
-        // 检查无障碍服务
-        if (BridgeAccessibilityService.instance == null) {
-            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
-                "status" to "error",
-                "error" to "Accessibility service not enabled"
-            ))
-        }
-
-        if (refresh) {
-            // 创建任务入队
-            val task = Task(
-                type = TaskType.GET_HISTORY,
-                target = target,
-                limit = limit,
-                refresh = true
-            )
-            tasks[task.id] = task
-
-            // 异步执行
-            executeReadTaskAsync(task)
-
-            return json(Response.Status.OK, mapOf(
-                "status" to "queued",
-                "task_id" to task.id,
-                "message" to "正在打开微信获取聊天记录"
-            ))
-        } else {
-            // 暂时返回空列表
-            return json(Response.Status.OK, mapOf(
-                "status" to "ok",
-                "source" to "empty",
-                "contact" to target,
-                "count" to 0,
-                "messages" to emptyList<Any>()
-            ))
-        }
-    }
-
-    /**
-     * 异步执行数据读取任务
-     */
-    private fun executeReadTaskAsync(task: Task) {
-        CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            try {
-                task.status = TaskStatus.RUNNING
-
-                // 暂时返回空结果
-                val result = when (task.type) {
-                    TaskType.GET_CONTACTS -> {
-                        ReadResult.successContacts(emptyList(), "fresh")
-                    }
-                    TaskType.GET_HISTORY -> {
-                        ReadResult.successMessages(emptyList())
-                    }
-                    else -> ReadResult.error("Unknown task type: ${task.type}")
-                }
-
-                // 更新任务状态
-                task.status = TaskStatus.DONE
-                task.result = result
-                Log.d(TAG, "Read task ${task.id} completed (placeholder)")
-
-            } catch (e: Exception) {
-                task.status = TaskStatus.FAILED
-                task.error = e.message ?: "Exception"
-                Log.e(TAG, "Read task ${task.id} exception", e)
-            }
-        }
     }
 
     /**

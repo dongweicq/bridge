@@ -5,9 +5,7 @@ package com.bridge.model
  */
 enum class TaskType {
     SEND_MESSAGE,
-    READ_HISTORY,
-    GET_CONTACTS,    // 获取联系人列表
-    GET_HISTORY      // 获取会话历史
+    READ_HISTORY
 }
 
 /**
@@ -26,13 +24,10 @@ enum class TaskStatus {
 data class Task(
     val id: String = java.util.UUID.randomUUID().toString(),
     val type: TaskType = TaskType.SEND_MESSAGE,
-    val target: String = "",      // 目标联系人
-    val message: String = "",     // 消息内容
-    val limit: Int = 20,          // 消息数量限制（用于 GET_HISTORY）
-    val refresh: Boolean = false, // 是否强制刷新（用于 GET_CONTACTS）
+    val target: String,      // 目标联系人
+    val message: String,     // 消息内容
     var status: TaskStatus = TaskStatus.QUEUED,
     var error: String? = null,
-    var result: ReadResult? = null,  // 读取结果（用于 GET_CONTACTS/GET_HISTORY）
     val createdAt: Long = System.currentTimeMillis()
 )
 
