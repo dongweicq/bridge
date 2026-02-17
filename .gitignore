@@ -96,3 +96,6 @@ app-release-unsigned.apk
 check_*.ps1
 check_*.sh
 get_*.ps1
+
+# Utility scripts (not for production)
+delete_workflow_runs.py
