@@ -54,6 +54,14 @@ class ToolManagerActivity : AppCompatActivity() {
             showEditDialog(null)
         }
 
+        findViewById<Button>(R.id.exportBtn).setOnClickListener {
+            exportConfig()
+        }
+
+        findViewById<Button>(R.id.importBtn).setOnClickListener {
+            importConfig()
+        }
+
         loadTools()
     }
 
@@ -86,13 +94,12 @@ class ToolManagerActivity : AppCompatActivity() {
 
         Toast.makeText(this, "正在执行前置步骤...", Toast.LENGTH_SHORT).show()
 
-        // 获取默认联系人设置剪贴板
+        // 获取默认联系人设置剪贴板（直接使用中文）
         val defaultContact = getDefaultContact()
-        val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(defaultContact)
-        android.util.Log.d("ToolManager", "设置剪贴板: $pinyinInitials (联系人: $defaultContact)")
+        android.util.Log.d("ToolManager", "设置剪贴板: $defaultContact")
         runOnUiThread {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, defaultContact))
         }
 
         // 在后台线程执行前置工具链
@@ -208,15 +215,14 @@ class ToolManagerActivity : AppCompatActivity() {
         // 获取默认设置
         val defaultContact = getDefaultContact()
         val defaultMessage = getDefaultMessage()
-        val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(defaultContact)
 
         Thread {
             try {
-                // 设置剪贴板为默认联系人的拼音首字母
-                android.util.Log.d("ToolManager", "设置剪贴板: $pinyinInitials (联系人: $defaultContact)")
+                // 设置剪贴板为默认联系人（直接使用中文）
+                android.util.Log.d("ToolManager", "设置剪贴板: $defaultContact")
                 runOnUiThread {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, defaultContact))
                 }
                 randomDelay(500, 1000)
 
@@ -383,13 +389,12 @@ class ToolManagerActivity : AppCompatActivity() {
 
             Toast.makeText(this, "正在执行前置步骤...", Toast.LENGTH_SHORT).show()
 
-            // 获取默认联系人设置剪贴板
+            // 获取默认联系人设置剪贴板（直接使用中文）
             val defaultContact = getDefaultContact()
-            val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(defaultContact)
-            android.util.Log.d("ToolManager", "设置剪贴板: $pinyinInitials (联系人: $defaultContact)")
+            android.util.Log.d("ToolManager", "设置剪贴板: $defaultContact")
             runOnUiThread {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, defaultContact))
             }
 
             // 在后台线程执行前置工具链
@@ -535,6 +540,72 @@ class ToolManagerActivity : AppCompatActivity() {
                 ToolManager.deleteTool(this, tool.id)
                 loadTools()
                 Toast.makeText(this, "已删除", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /**
+     * 导出配置
+     */
+    private fun exportConfig() {
+        // 检查存储权限（Android 10+ 不需要）
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 100)
+                Toast.makeText(this, "请授予存储权限", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        Thread {
+            val filePath = ToolManager.exportTools(this)
+            runOnUiThread {
+                if (filePath != null) {
+                    Toast.makeText(this, "配置已导出到:\n$filePath", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "导出失败", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    /**
+     * 导入配置
+     */
+    private fun importConfig() {
+        // 检查存储权限（Android 10+ 不需要）
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 101)
+                Toast.makeText(this, "请授予存储权限", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        // 检查导入文件是否存在
+        if (!ToolManager.hasImportFile()) {
+            Toast.makeText(this, "导入文件不存在:\n${ToolManager.getImportFilePath()}", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("导入配置")
+            .setMessage("确定要导入配置吗？\n当前配置将被覆盖。")
+            .setPositiveButton("导入") { _, _ ->
+                Thread {
+                    val success = ToolManager.importTools(this)
+                    runOnUiThread {
+                        if (success) {
+                            loadTools()
+                            Toast.makeText(this, "配置导入成功", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this, "导入失败，请检查文件格式", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }.start()
             }
             .setNegativeButton("取消", null)
             .show()

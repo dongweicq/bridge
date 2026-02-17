@@ -60,11 +60,13 @@ class WeChatActionEngine {
             val contactTool = allTools.find { it.name == "联系人" }
             val msgInputTool = allTools.find { it.name == "消息输入框" }
 
-            // 步骤1: 设置剪贴板内容为目标联系人的拼音首字母
-            val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(task.target)
-            Log.d(TAG, "搜索词 '${task.target}' 转换为拼音首字母: '$pinyinInitials'")
+            // 步骤1: 设置剪贴板内容为目标联系人名称（直接使用中文）
+            // 注：剪贴板完全支持中文，微信搜索也支持中文直接搜索
+            // 如需使用拼音首字母搜索，可改为：PinyinUtil.toPinyinInitials(task.target)
+            val searchText = task.target
+            Log.d(TAG, "搜索联系人: '$searchText'")
 
-            setClipboard(service, pinyinInitials)
+            setClipboard(service, searchText)
             delayAfterInput()
 
             // 步骤2: 执行前置工具链（打开微信等）

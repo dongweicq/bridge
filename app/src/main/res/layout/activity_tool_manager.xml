@@ -24,6 +24,36 @@
         android:layout_weight="1"
         android:padding="8dp"/>
 
+    <!-- 导出/导入按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="4dp">
+
+        <Button
+            android:id="@+id/exportBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginRight="4dp"
+            android:text="导出配置"
+            android:backgroundTint="#2196F3"
+            android:textSize="14sp"/>
+
+        <Button
+            android:id="@+id/importBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="4dp"
+            android:text="导入配置"
+            android:backgroundTint="#FF9800"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
     <!-- 添加工具按钮 -->
     <Button
         android:id="@+id/addToolBtn"
