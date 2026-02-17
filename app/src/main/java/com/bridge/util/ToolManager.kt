@@ -268,4 +268,94 @@ object ToolManager {
             prefs.edit().putInt(KEY_VERSION, CURRENT_VERSION).apply()
         }
     }
+
+    /**
+     * 导出工具配置到文件
+     * @return 导出文件的路径，失败返回 null
+     */
+    fun exportTools(context: Context): String? {
+        return try {
+            val tools = getUserTools(context)
+            val jsonArray = JSONArray()
+            tools.forEach { jsonArray.put(it.toJson()) }
+
+            // 导出到外部存储的 Downloads 目录
+            val exportDir = java.io.File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOWNLOADS
+                ), "bridge"
+            )
+            if (!exportDir.exists()) {
+                exportDir.mkdirs()
+            }
+
+            val exportFile = java.io.File(exportDir, "tools_config.json")
+            exportFile.writeText(jsonArray.toString(2))
+
+            android.util.Log.d("ToolManager", "配置已导出到: ${exportFile.absolutePath}")
+            exportFile.absolutePath
+        } catch (e: Exception) {
+            android.util.Log.e("ToolManager", "导出配置失败", e)
+            null
+        }
+    }
+
+    /**
+     * 从文件导入工具配置
+     * @return 成功返回 true，失败返回 false
+     */
+    fun importTools(context: Context): Boolean {
+        return try {
+            val importFile = java.io.File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOWNLOADS
+                ), "bridge/tools_config.json"
+            )
+
+            if (!importFile.exists()) {
+                android.util.Log.e("ToolManager", "导入文件不存在: ${importFile.absolutePath}")
+                return false
+            }
+
+            val jsonStr = importFile.readText()
+            val jsonArray = JSONArray(jsonStr)
+            val tools = mutableListOf<Tool>()
+
+            for (i in 0 until jsonArray.length()) {
+                tools.add(Tool.fromJson(jsonArray.getJSONObject(i)))
+            }
+
+            // 保存导入的工具配置
+            saveUserTools(context, tools)
+
+            android.util.Log.d("ToolManager", "成功导入 ${tools.size} 个工具配置")
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("ToolManager", "导入配置失败", e)
+            false
+        }
+    }
+
+    /**
+     * 检查导入文件是否存在
+     */
+    fun hasImportFile(): Boolean {
+        val importFile = java.io.File(
+            android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS
+            ), "bridge/tools_config.json"
+        )
+        return importFile.exists()
+    }
+
+    /**
+     * 获取导入文件路径
+     */
+    fun getImportFilePath(): String {
+        return java.io.File(
+            android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS
+            ), "bridge/tools_config.json"
+        ).absolutePath
+    }
 }

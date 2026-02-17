@@ -226,13 +226,12 @@ class MainActivity : AppCompatActivity() {
                 val executionChain = ToolManager.getExecutionChain(this, sendBtnTool.id)
                 android.util.Log.d("Bridge", "搜索执行链: ${executionChain.map { it.name }}")
 
-                // 设置剪贴板内容为目标联系人的拼音首字母
-                val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(targetContact)
-                android.util.Log.d("Bridge", "搜索词 '$targetContact' 转换为拼音首字母: '$pinyinInitials'")
+                // 设置剪贴板内容为目标联系人名称（直接使用中文）
+                android.util.Log.d("Bridge", "搜索联系人: '$targetContact'")
 
                 runOnUiThread {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, targetContact))
                 }
                 randomDelay(500, 1000)
 
@@ -295,13 +294,12 @@ class MainActivity : AppCompatActivity() {
                 val executionChain = ToolManager.getExecutionChain(this, sendBtnTool.id)
                 android.util.Log.d("Bridge", "发送执行链: ${executionChain.map { it.name }}")
 
-                // 设置剪贴板内容为目标联系人的拼音首字母
-                val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(targetContact)
-                android.util.Log.d("Bridge", "搜索词 '$targetContact' 转换为拼音首字母: '$pinyinInitials'")
+                // 设置剪贴板内容为目标联系人名称（直接使用中文）
+                android.util.Log.d("Bridge", "搜索联系人: '$targetContact'")
 
                 runOnUiThread {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, targetContact))
                 }
                 randomDelay(500, 1000)
 
