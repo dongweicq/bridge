@@ -4,7 +4,6 @@ import android.util.Log
 import com.bridge.BridgeAccessibilityService
 import com.bridge.BridgeService
 import com.bridge.action.ActionDispatcher
-import com.bridge.action.WeChatDataReader
 import com.bridge.data.DataStore
 import com.bridge.model.ReadResult
 import com.bridge.model.Task
@@ -31,9 +30,6 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
         // 任务存储（内存，简单实现）
         private val tasks = ConcurrentHashMap<String, Task>()
-
-        // 数据读取引擎
-        private val dataReader = WeChatDataReader()
     }
 
     override fun serve(session: IHTTPSession): Response {
@@ -285,36 +281,21 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
             try {
                 task.status = TaskStatus.RUNNING
 
-                val service = BridgeAccessibilityService.instance
-                if (service == null) {
-                    task.status = TaskStatus.FAILED
-                    task.error = "Accessibility service not available"
-                    return@launch
-                }
-
-                // 在 Action 线程执行 UI 操作
-                val result = withContext(ActionDispatcher.dispatcher) {
-                    when (task.type) {
-                        TaskType.GET_CONTACTS -> {
-                            dataReader.readContacts(service, task.limit, task.refresh)
-                        }
-                        TaskType.GET_HISTORY -> {
-                            dataReader.readHistory(service, task.target, task.limit)
-                        }
-                        else -> ReadResult.error("Unknown task type: ${task.type}")
+                // 暂时返回空结果
+                val result = when (task.type) {
+                    TaskType.GET_CONTACTS -> {
+                        ReadResult.successContacts(emptyList(), "fresh")
                     }
+                    TaskType.GET_HISTORY -> {
+                        ReadResult.successMessages(emptyList())
+                    }
+                    else -> ReadResult.error("Unknown task type: ${task.type}")
                 }
 
                 // 更新任务状态
-                if (result.success) {
-                    task.status = TaskStatus.DONE
-                    task.result = result
-                    Log.d(TAG, "Read task ${task.id} completed")
-                } else {
-                    task.status = TaskStatus.FAILED
-                    task.error = result.error ?: "Unknown error"
-                    Log.w(TAG, "Read task ${task.id} failed: ${task.error}")
-                }
+                task.status = TaskStatus.DONE
+                task.result = result
+                Log.d(TAG, "Read task ${task.id} completed (placeholder)")
 
             } catch (e: Exception) {
                 task.status = TaskStatus.FAILED
