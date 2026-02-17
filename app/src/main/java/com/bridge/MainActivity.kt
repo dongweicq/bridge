@@ -224,7 +224,9 @@ class MainActivity : AppCompatActivity() {
 
                 // 获取完整执行链
                 val executionChain = ToolManager.getExecutionChain(this, sendBtnTool.id)
-                android.util.Log.d("Bridge", "搜索执行链: ${executionChain.map { it.name }}")
+                android.util.Log.d("Bridge", "=== 搜索测试 ===")
+                android.util.Log.d("Bridge", "执行链长度: ${executionChain.size}")
+                android.util.Log.d("Bridge", "搜索执行链: ${executionChain.map { "${it.name}(x=${it.x},y=${it.y})" }}")
 
                 // 设置剪贴板内容为目标联系人名称（直接使用中文）
                 android.util.Log.d("Bridge", "搜索联系人: '$targetContact'")
@@ -236,10 +238,13 @@ class MainActivity : AppCompatActivity() {
                 randomDelay(500, 1000)
 
                 // 执行工具链（只执行到联系人，不包括消息输入框和发送按钮）
-                for (tool in executionChain) {
+                for ((index, tool) in executionChain.withIndex()) {
                     // 停在联系人（执行完联系人点击后停止）
-                    if (tool.name == "消息输入框") break
-                    android.util.Log.d("Bridge", "执行工具: ${tool.name}")
+                    if (tool.name == "消息输入框") {
+                        android.util.Log.d("Bridge", "到达消息输入框，停止执行")
+                        break
+                    }
+                    android.util.Log.d("Bridge", "[$index] 执行工具: ${tool.name}, id=${tool.id}, x=${tool.x}, y=${tool.y}")
                     executeTool(tool, service)
                 }
 

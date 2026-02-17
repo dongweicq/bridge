@@ -21,12 +21,14 @@ import com.bridge.R
  * 显示全屏蒙层，让用户点击选择坐标位置
  */
 class CoordinatePicker(
-    private val context: Context,
+    context: Context,
     private val onCoordinatePicked: (xRatio: Float, yRatio: Float) -> Unit,
     private val onCancelled: () -> Unit = {},
     private val initialX: Float? = null,
     private val initialY: Float? = null
 ) {
+    // 使用 applicationContext 确保能在其他应用之上显示 overlay
+    private val context = context.applicationContext
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var overlayView: View? = null
     private var isShowing = false

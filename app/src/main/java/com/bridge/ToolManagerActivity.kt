@@ -117,6 +117,9 @@ class ToolManagerActivity : AppCompatActivity() {
                     executeTool(t, service)
                 }
 
+                // 等待目标应用完全显示
+                randomDelay(1000, 2000)
+
                 runOnUiThread {
                     Toast.makeText(this, "请在屏幕上点击选择位置", Toast.LENGTH_SHORT).show()
                     showCoordinatePicker(tool)
@@ -407,6 +410,9 @@ class ToolManagerActivity : AppCompatActivity() {
                         android.util.Log.d("ToolManager", "执行前置工具: ${t.name}")
                         executeTool(t, service)
                     }
+
+                    // 等待目标应用完全显示
+                    randomDelay(1000, 2000)
 
                     runOnUiThread {
                         Toast.makeText(this, "请在屏幕上点击选择位置", Toast.LENGTH_SHORT).show()
