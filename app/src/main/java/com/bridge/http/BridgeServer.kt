@@ -269,7 +269,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
     private fun executeReadWithCache(
         service: BridgeAccessibilityService,
         cacheSetter: (List<com.bridge.model.ContactData>) -> Unit,
-        readOperation: (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
+        readOperation: suspend (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
     ): Response {
         // 使用同步方式执行读取（在 ActionDispatcher 线程）
         var result: com.bridge.model.ReadResult? = null
@@ -331,7 +331,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         service: BridgeAccessibilityService,
         contactName: String,
         cacheSetter: (List<com.bridge.model.MessageData>) -> Unit,
-        readOperation: (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
+        readOperation: suspend (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
     ): Response {
         // 使用同步方式执行读取（在 ActionDispatcher 线程）
         var result: com.bridge.model.ReadResult? = null
