@@ -87,10 +87,22 @@ class ScreenshotHelper(private val context: Context) {
 
             // Android 10+ 需要先启动 mediaProjection 类型的前台服务
             Log.d(TAG, "启动 MediaProjectionService...")
-            MediaProjectionService.start(context)
-
-            // 等待服务启动
-            Thread.sleep(500)
+            if (!MediaProjectionService.isRunning) {
+                MediaProjectionService.start(context)
+                // 等待服务启动（最多 3 秒）
+                var waitCount = 0
+                while (!MediaProjectionService.isRunning && waitCount < 30) {
+                    Thread.sleep(100)
+                    waitCount++
+                }
+                if (!MediaProjectionService.isRunning) {
+                    Log.e(TAG, "MediaProjectionService 启动超时")
+                    return false
+                }
+                // 额外等待确保 startForeground 完成
+                Thread.sleep(500)
+            }
+            Log.d(TAG, "MediaProjectionService 已就绪: ${MediaProjectionService.isRunning}")
 
             // 释放旧的 MediaProjection
             mediaProjection?.stop()
