@@ -127,7 +127,7 @@ object ToolManager {
     /**
      * 保存用户工具列表
      */
-    private fun saveUserTools(context: Context, tools: List<Tool>) {
+    fun saveUserTools(context: Context, tools: List<Tool>) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         val array = JSONArray()
         tools.filter { !it.isBuiltIn }.forEach { array.put(it.toJson()) }

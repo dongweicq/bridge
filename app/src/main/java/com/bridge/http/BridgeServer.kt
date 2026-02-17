@@ -631,7 +631,8 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
             screenshotHelper = ScreenshotHelper(BridgeService.instance ?: return)
         }
 
-        val success = screenshotHelper?.initMediaProjection(resultCode, data) ?: false
+        val intent = data ?: return
+        val success = screenshotHelper?.initMediaProjection(resultCode, intent) ?: false
         pendingScreenshotResult?.invoke(success)
         pendingScreenshotResult = null
     }
