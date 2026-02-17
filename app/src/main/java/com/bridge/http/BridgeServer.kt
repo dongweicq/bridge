@@ -195,7 +195,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 "status" to "ok",
                 "source" to "empty",
                 "count" to 0,
-                "contacts" to emptyList<Any>()
+                "contacts" to listOf<Map<String, Any>>()
             ))
         }
     }
@@ -244,7 +244,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 "source" to "empty",
                 "contact" to target,
                 "count" to 0,
-                "messages" to emptyList<Any>()
+                "messages" to listOf<Map<String, Any>>()
             ))
         }
     }
