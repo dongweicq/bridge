@@ -36,5 +36,11 @@ Thumbs.db
 *.jpeg
 *.png
 
-# Debug scripts
-*.ps1
+# Downloaded APK
+app-debug.apk
+app-release-unsigned.apk
+
+# Debug scripts (except auto_deploy)
+check_*.ps1
+check_*.sh
+get_*.ps1
