@@ -3,6 +3,11 @@ name: Build Bridge APK
 on:
   push:
     branches: [ main, master, phase1-foundation ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'doc/**'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # 手动触发

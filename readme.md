@@ -235,12 +235,91 @@ curl http://127.0.0.1:7788/task/{task_id}
 adb logcat -s ToolManager:D Bridge:D WeChatAction:D
 ```
 
+## 版本更新流程
+
+### 仅文档更新
+
+当只修改 `*.md` 文件时，直接提交即可，**不会触发构建**：
+
+```bash
+git add *.md
+git commit -m "docs: 更新文档"
+git push
+```
+
+### 代码更新 (完整流程)
+
+每次代码更新后，执行以下完整流程：
+
+```bash
+# 1. 提交代码
+git add -A
+git commit -m "feat: 新功能描述"
+git push
+
+# 2. 等待 GitHub Actions 构建完成 (~2-3分钟)
+# 查看构建状态: https://github.com/dongaicloud/bridge/actions
+
+# 3. 一键部署最新版本
+bash auto_deploy.sh          # Linux/Mac
+.\auto_deploy.ps1            # Windows
+
+# 4. 监控运行日志
+bash auto_deploy.sh logs     # Linux/Mac
+.\auto_deploy.ps1 -Action logs  # Windows
+```
+
+### 手动更新步骤
+
+1. **下载最新 APK**
+   ```bash
+   # 从 GitHub Releases 下载
+   curl -L -o app-debug.apk "https://github.com/dongaicloud/bridge/releases/latest/download/app-debug.apk"
+   ```
+
+2. **安装到设备**
+   ```bash
+   adb install -r app-debug.apk
+   adb shell am start -n com.bridge/.MainActivity
+   ```
+
+3. **查看运行日志**
+   ```bash
+   adb logcat -v time BridgeServer:V BridgeAccessibility:V *:S
+   ```
+
+### 更新日志
+
+所有版本更新记录见 [CHANGELOG.md](CHANGELOG.md)
+
 ## 注意事项
 
 1. **首次使用** - 需要逐个配置工具坐标
 2. **微信版本** - 不同版本的 UI 布局可能有差异
 3. **输入法** - 需要支持剪贴板功能的输入法
 4. **延迟设置** - 已内置随机延迟模拟人工操作（x3）
+
+## 隐私安全
+
+### 禁止提交的文件
+
+以下文件类型已在 `.gitignore` 中配置，**禁止提交**：
+
+- 图片文件 (`.jpg`, `.png`, `.gif` 等)
+- 截图文件 (`*screenshot*`)
+- 敏感配置 (`.env`, `secrets.*`)
+- 签名证书 (`.jks`, `.keystore`)
+- 数据库文件 (`.db`, `.sqlite`)
+
+### 提交前检查
+
+```bash
+# 检查待提交文件
+git status
+
+# 检查是否有敏感文件
+git diff --cached --name-only | grep -E '\.(jpg|png|gif|env|secret|jks)$'
+```
 
 ## 许可证
 

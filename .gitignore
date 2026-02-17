@@ -31,10 +31,62 @@ Thumbs.db
 # Claude
 .claude/
 
-# Test images
+# ========== 隐私敏感文件 (禁止提交) ==========
+
+# 图片文件
 *.jpg
 *.jpeg
 *.png
+*.gif
+*.bmp
+*.webp
+*.ico
+*.svg
+
+# 截图
+*screenshot*
+*截图*
+*Screenshot*
+
+# 敏感文档
+*.env
+*.env.*
+.env.local
+.env.*.local
+secrets.*
+*.secret
+*.private
+*_private*
+credentials*.json
+api_keys*.json
+config.local.*
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 压缩包 (可能包含敏感数据)
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# 个人笔记
+NOTES.md
+TODO.md
+私人*
+备注*
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# ========== 其他 ==========
 
 # Downloaded APK
 app-debug.apk
