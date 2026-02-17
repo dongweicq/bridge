@@ -55,6 +55,8 @@ data class Tool(
 object ToolManager {
     private const val PREF_NAME = "bridge_tools"
     private const val KEY_TOOLS = "tools"
+    private const val KEY_VERSION = "tools_version"
+    private const val CURRENT_VERSION = 2  // 更新版本号以强制重置工具配置
 
     // 内置工具ID
     const val TOOL_OPEN_WECHAT = "builtin_open_wechat"
@@ -195,12 +197,16 @@ object ToolManager {
     }
 
     /**
-     * 初始化默认用户工具（如果是首次使用）
+     * 初始化默认用户工具（如果是首次使用或版本更新）
      */
     fun initDefaultTools(context: Context) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        if (!prefs.contains(KEY_TOOLS)) {
+        val savedVersion = prefs.getInt(KEY_VERSION, 0)
+
+        // 版本更新时强制重置工具配置
+        if (!prefs.contains(KEY_TOOLS) || savedVersion < CURRENT_VERSION) {
             // 首次使用，创建默认工具
+            // 注意：剪贴板内容由调用方在执行前设置，工具链中不包含 SET_CLIPBOARD
             val defaultTools = listOf(
                 Tool(
                     id = "tool_search_btn",
@@ -216,7 +222,7 @@ object ToolManager {
                     description = "键盘上的剪贴板内容位置",
                     x = 0.50f,
                     y = 0.65f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", TOOL_SET_CLIPBOARD)
+                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn")
                 ),
                 Tool(
                     id = "tool_contact",
@@ -224,7 +230,7 @@ object ToolManager {
                     description = "搜索结果中的联系人",
                     x = 0.50f,
                     y = 0.213f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", TOOL_SET_CLIPBOARD, "tool_ime_clipboard")
+                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard")
                 ),
                 Tool(
                     id = "tool_msg_input",
@@ -232,7 +238,7 @@ object ToolManager {
                     description = "聊天界面底部输入框",
                     x = 0.35f,
                     y = 0.955f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", TOOL_SET_CLIPBOARD, "tool_ime_clipboard", "tool_contact")
+                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard", "tool_contact")
                 ),
                 Tool(
                     id = "tool_send_btn",
@@ -240,10 +246,12 @@ object ToolManager {
                     description = "聊天界面发送按钮",
                     x = 0.92f,
                     y = 0.955f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", TOOL_SET_CLIPBOARD, "tool_ime_clipboard", "tool_contact", "tool_msg_input", TOOL_SET_CLIPBOARD, "tool_ime_clipboard")
+                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard", "tool_contact", "tool_msg_input", "tool_ime_clipboard")
                 )
             )
             saveUserTools(context, defaultTools)
+            // 保存版本号
+            prefs.edit().putInt(KEY_VERSION, CURRENT_VERSION).apply()
         }
     }
 }
