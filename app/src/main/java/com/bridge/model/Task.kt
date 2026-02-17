@@ -5,7 +5,9 @@ package com.bridge.model
  */
 enum class TaskType {
     SEND_MESSAGE,
-    READ_HISTORY
+    READ_HISTORY,
+    GET_CONTACTS,    // 获取联系人列表
+    GET_HISTORY      // 获取会话历史
 }
 
 /**
@@ -24,10 +26,13 @@ enum class TaskStatus {
 data class Task(
     val id: String = java.util.UUID.randomUUID().toString(),
     val type: TaskType = TaskType.SEND_MESSAGE,
-    val target: String,      // 目标联系人
-    val message: String,     // 消息内容
+    val target: String = "",      // 目标联系人
+    val message: String = "",     // 消息内容
+    val limit: Int = 20,          // 消息数量限制
+    val refresh: Boolean = false, // 是否强制刷新
     var status: TaskStatus = TaskStatus.QUEUED,
     var error: String? = null,
+    var result: ReadResult? = null,  // 读取结果
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -38,7 +43,7 @@ data class TaskResult(
     val success: Boolean,
     val message: String = "",
     val error: String? = null,
-    val candidates: List<String>? = null  // 多个匹配时的候选列表
+    val candidates: List<String>? = null
 ) {
     companion object {
         fun ok(message: String = "成功"): TaskResult {
