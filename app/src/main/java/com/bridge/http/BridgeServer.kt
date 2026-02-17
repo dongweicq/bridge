@@ -4,9 +4,13 @@ import android.util.Log
 import com.bridge.BridgeAccessibilityService
 import com.bridge.BridgeService
 import com.bridge.action.ActionDispatcher
+import com.bridge.action.WeChatDataReader
+import com.bridge.data.DataStore
+import com.bridge.model.ReadResult
 import com.bridge.model.Task
 import com.bridge.model.TaskResult
 import com.bridge.model.TaskStatus
+import com.bridge.model.TaskType
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
@@ -27,6 +31,9 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
         // 任务存储（内存，简单实现）
         private val tasks = ConcurrentHashMap<String, Task>()
+
+        // 数据读取引擎
+        private val dataReader = WeChatDataReader()
     }
 
     override fun serve(session: IHTTPSession): Response {
@@ -40,6 +47,8 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 uri == "/ping" && method == Method.GET -> handlePing()
                 uri == "/health" && method == Method.GET -> handleHealth()
                 uri == "/send_message" && method == Method.POST -> handleSendMessage(session)
+                uri == "/chat_list" && method == Method.GET -> handleChatList(session)
+                uri == "/chat_history" && method == Method.GET -> handleChatHistory(session)
                 uri.startsWith("/task/") && method == Method.GET -> handleTaskStatus(uri)
                 uri.startsWith("/debug/ui_tree") && method == Method.GET -> handleDebugUITree(session)
                 else -> json(Response.Status.NOT_FOUND, mapOf("error" to "Not Found"))
@@ -133,14 +142,186 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         val result = mutableMapOf(
             "id" to task.id,
             "status" to task.status.name.lowercase(),
-            "target" to task.target
+            "type" to task.type.name.lowercase()
         )
+
+        // 添加目标信息
+        if (task.target.isNotEmpty()) {
+            result["target"] = task.target
+        }
+
+        // 添加读取结果
+        if (task.status == TaskStatus.DONE && task.result != null) {
+            result["result"] = mapOf(
+                "success" to task.result!!.success,
+                "source" to task.result!!.source,
+                "total_count" to task.result!!.totalCount,
+                "has_more" to task.result!!.hasMore,
+                "contacts" to task.result!!.contacts,
+                "messages" to task.result!!.messages,
+                "error" to task.result!!.error
+            )
+        }
 
         if (task.status == TaskStatus.FAILED) {
             result["error"] = (task.error ?: "Unknown error")
         }
 
         return json(Response.Status.OK, result)
+    }
+
+    /**
+     * GET /chat_list - 获取联系人列表
+     * 参数:
+     *   - refresh: 是否强制刷新（打开微信读取），默认 false
+     *   - limit: 返回数量限制，默认 50
+     */
+    private fun handleChatList(session: IHTTPSession): Response {
+        val params = session.parms
+        val refresh = params["refresh"]?.toBoolean() ?: false
+        val limit = params["limit"]?.toIntOrNull()?.coerceIn(1, 200) ?: 50
+
+        // 检查无障碍服务
+        if (BridgeAccessibilityService.instance == null) {
+            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
+                "status" to "error",
+                "error" to "Accessibility service not enabled"
+            ))
+        }
+
+        if (refresh) {
+            // 创建任务入队
+            val task = Task(
+                type = TaskType.GET_CONTACTS,
+                refresh = true,
+                limit = limit
+            )
+            tasks[task.id] = task
+
+            // 异步执行
+            executeReadTaskAsync(task)
+
+            return json(Response.Status.OK, mapOf(
+                "status" to "queued",
+                "task_id" to task.id,
+                "message" to "正在打开微信获取联系人列表"
+            ))
+        } else {
+            // 返回缓存数据
+            val cached = DataStore.getContacts(limit)
+            return json(Response.Status.OK, mapOf(
+                "status" to "ok",
+                "source" to if (cached.isNotEmpty()) "cache" else "empty",
+                "count" to cached.size,
+                "contacts" to cached
+            ))
+        }
+    }
+
+    /**
+     * GET /chat_history - 获取会话历史
+     * 参数:
+     *   - target: 联系人名称（必填）
+     *   - limit: 消息数量，默认 20
+     *   - refresh: 是否强制刷新，默认 false
+     */
+    private fun handleChatHistory(session: IHTTPSession): Response {
+        val params = session.parms
+        val target = params["target"]
+        val limit = params["limit"]?.toIntOrNull()?.coerceIn(1, 100) ?: 20
+        val refresh = params["refresh"]?.toBoolean() ?: false
+
+        if (target.isNullOrBlank()) {
+            return json(Response.Status.BAD_REQUEST, mapOf(
+                "status" to "error",
+                "error" to "Missing 'target' parameter"
+            ))
+        }
+
+        // 检查无障碍服务
+        if (BridgeAccessibilityService.instance == null) {
+            return json(Response.Status.SERVICE_UNAVAILABLE, mapOf(
+                "status" to "error",
+                "error" to "Accessibility service not enabled"
+            ))
+        }
+
+        if (refresh) {
+            // 创建任务入队
+            val task = Task(
+                type = TaskType.GET_HISTORY,
+                target = target,
+                limit = limit,
+                refresh = true
+            )
+            tasks[task.id] = task
+
+            // 异步执行
+            executeReadTaskAsync(task)
+
+            return json(Response.Status.OK, mapOf(
+                "status" to "queued",
+                "task_id" to task.id,
+                "message" to "正在打开微信获取聊天记录"
+            ))
+        } else {
+            // 返回缓存数据
+            val cached = DataStore.getMessages(target, limit)
+            return json(Response.Status.OK, mapOf(
+                "status" to "ok",
+                "source" to if (cached.isNotEmpty()) "cache" else "empty",
+                "contact" to target,
+                "count" to cached.size,
+                "messages" to cached
+            ))
+        }
+    }
+
+    /**
+     * 异步执行数据读取任务
+     */
+    private fun executeReadTaskAsync(task: Task) {
+        CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                task.status = TaskStatus.RUNNING
+
+                val service = BridgeAccessibilityService.instance
+                if (service == null) {
+                    task.status = TaskStatus.FAILED
+                    task.error = "Accessibility service not available"
+                    return@launch
+                }
+
+                // 在 Action 线程执行 UI 操作
+                val result = withContext(ActionDispatcher.dispatcher) {
+                    when (task.type) {
+                        TaskType.GET_CONTACTS -> {
+                            dataReader.readContacts(service, task.limit, task.refresh)
+                        }
+                        TaskType.GET_HISTORY -> {
+                            dataReader.readHistory(service, task.target, task.limit)
+                        }
+                        else -> ReadResult.error("Unknown task type: ${task.type}")
+                    }
+                }
+
+                // 更新任务状态
+                if (result.success) {
+                    task.status = TaskStatus.DONE
+                    task.result = result
+                    Log.d(TAG, "Read task ${task.id} completed")
+                } else {
+                    task.status = TaskStatus.FAILED
+                    task.error = result.error ?: "Unknown error"
+                    Log.w(TAG, "Read task ${task.id} failed: ${task.error}")
+                }
+
+            } catch (e: Exception) {
+                task.status = TaskStatus.FAILED
+                task.error = e.message ?: "Exception"
+                Log.e(TAG, "Read task ${task.id} exception", e)
+            }
+        }
     }
 
     /**
