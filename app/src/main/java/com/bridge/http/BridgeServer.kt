@@ -4,7 +4,6 @@ import android.util.Log
 import com.bridge.BridgeAccessibilityService
 import com.bridge.BridgeService
 import com.bridge.action.ActionDispatcher
-import com.bridge.data.DataStore
 import com.bridge.model.ReadResult
 import com.bridge.model.Task
 import com.bridge.model.TaskResult
@@ -203,13 +202,12 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 "message" to "正在打开微信获取联系人列表"
             ))
         } else {
-            // 返回缓存数据
-            val cached = DataStore.getContacts(limit)
+            // 暂时返回空列表
             return json(Response.Status.OK, mapOf(
                 "status" to "ok",
-                "source" to if (cached.isNotEmpty()) "cache" else "empty",
-                "count" to cached.size,
-                "contacts" to cached
+                "source" to "empty",
+                "count" to 0,
+                "contacts" to emptyList<Any>()
             ))
         }
     }
@@ -261,14 +259,13 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                 "message" to "正在打开微信获取聊天记录"
             ))
         } else {
-            // 返回缓存数据
-            val cached = DataStore.getMessages(target, limit)
+            // 暂时返回空列表
             return json(Response.Status.OK, mapOf(
                 "status" to "ok",
-                "source" to if (cached.isNotEmpty()) "cache" else "empty",
+                "source" to "empty",
                 "contact" to target,
-                "count" to cached.size,
-                "messages" to cached
+                "count" to 0,
+                "messages" to emptyList<Any>()
             ))
         }
     }
