@@ -56,7 +56,7 @@ object ToolManager {
     private const val PREF_NAME = "bridge_tools"
     private const val KEY_TOOLS = "tools"
     private const val KEY_VERSION = "tools_version"
-    private const val CURRENT_VERSION = 2  // 更新版本号以强制重置工具配置
+    private const val CURRENT_VERSION = 3  // 更新版本号以强制重置工具配置
 
     // 内置工具ID
     const val TOOL_OPEN_WECHAT = "builtin_open_wechat"
@@ -170,6 +170,12 @@ object ToolManager {
         val result = mutableListOf<Tool>()
         val visited = mutableSetOf<String>()
 
+        // 打印所有工具配置用于调试
+        android.util.Log.d("ToolManager", "=== 所有工具配置 ===")
+        for (tool in allTools) {
+            android.util.Log.d("ToolManager", "工具: ${tool.name}, id=${tool.id}, preToolIds=${tool.preToolIds}, x=${tool.x}, y=${tool.y}")
+        }
+
         fun collectChain(id: String) {
             if (id in visited) return
             visited.add(id)
@@ -186,6 +192,10 @@ object ToolManager {
         }
 
         collectChain(toolId)
+
+        android.util.Log.d("ToolManager", "=== 执行链 for $toolId ===")
+        android.util.Log.d("ToolManager", "执行链: ${result.map { it.name }}")
+
         return result
     }
 
@@ -203,8 +213,12 @@ object ToolManager {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         val savedVersion = prefs.getInt(KEY_VERSION, 0)
 
+        android.util.Log.d("ToolManager", "initDefaultTools: savedVersion=$savedVersion, CURRENT_VERSION=$CURRENT_VERSION")
+
         // 版本更新时强制重置工具配置
         if (!prefs.contains(KEY_TOOLS) || savedVersion < CURRENT_VERSION) {
+            android.util.Log.d("ToolManager", "重置工具配置...")
+
             // 首次使用，创建默认工具
             // 注意：剪贴板内容由调用方在执行前设置，工具链中不包含 SET_CLIPBOARD
             val defaultTools = listOf(
