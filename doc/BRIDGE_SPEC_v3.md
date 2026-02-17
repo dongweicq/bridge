@@ -13,7 +13,7 @@
 Bridge APK 是 OpenClaw 在 Android 手机上的执行代理，负责：
 
 -   接收 OpenClaw 指令
--   自动操作微信等 App UI
+-   自动操作某信等 App UI
 -   读取聊天记录
 -   自动发送消息
 -   支持无人值守运行
@@ -45,7 +45,7 @@ BridgeActionThread（核心线程）\
 → 串行执行 UI 自动化
 
 NotificationListener Thread\
-→ 接收微信消息通知
+→ 接收某信消息通知
 
 ------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ class ActionEngine {
 
             wakeDeviceIfNeeded()
 
-            openWeChat()
+            openMoxin()
 
             openChat(task.contact)
 

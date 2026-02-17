@@ -4,8 +4,8 @@ import android.util.Log
 import com.bridge.BridgeAccessibilityService
 import com.bridge.BridgeService
 import com.bridge.action.ActionDispatcher
-import com.bridge.action.WeChatActionEngine
-import com.bridge.cache.WeChatDataCache
+import com.bridge.action.MoxinActionEngine
+import com.bridge.cache.MoxinDataCache
 import com.bridge.model.Task
 import com.bridge.model.TaskResult
 import com.bridge.model.TaskStatus
@@ -165,7 +165,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
         // 先检查缓存（除非强制刷新）
         if (!refresh) {
-            val cached = WeChatDataCache.getContacts()
+            val cached = MoxinDataCache.getContacts()
             if (cached != null && cached.isNotEmpty()) {
                 return json(Response.Status.OK, mapOf(
                     "status" to "ok",
@@ -187,10 +187,10 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         // 使用同步方式执行读取（在 ActionDispatcher 线程）
         return executeReadWithCache(
             service = service,
-            cacheSetter = { WeChatDataCache.setContacts(it) },
+            cacheSetter = { MoxinDataCache.setContacts(it) },
             readOperation = { actionEngine, svc ->
                 // 导航到首页
-                val navResult = actionEngine.navigateToWeChatHome(svc)
+                val navResult = actionEngine.navigateToMoxinHome(svc)
                 if (!navResult.success) {
                     return@executeReadWithCache com.bridge.model.ReadResult.error(navResult.error ?: "导航失败")
                 }
@@ -226,7 +226,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
         // 先检查缓存（除非强制刷新）
         if (!refresh) {
-            val cached = WeChatDataCache.getMessages(target)
+            val cached = MoxinDataCache.getMessages(target)
             if (cached != null && cached.isNotEmpty()) {
                 return json(Response.Status.OK, mapOf(
                     "status" to "ok",
@@ -250,7 +250,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         return executeReadWithCacheMessages(
             service = service,
             contactName = target,
-            cacheSetter = { WeChatDataCache.setMessages(target, it) },
+            cacheSetter = { MoxinDataCache.setMessages(target, it) },
             readOperation = { actionEngine, svc ->
                 // 导航到聊天界面
                 val navResult = actionEngine.navigateToChat(svc, target)
@@ -269,7 +269,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
     private fun executeReadWithCache(
         service: BridgeAccessibilityService,
         cacheSetter: (List<com.bridge.model.ContactData>) -> Unit,
-        readOperation: suspend (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
+        readOperation: suspend (MoxinActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
     ): Response {
         // 使用同步方式执行读取（在 ActionDispatcher 线程）
         var result: com.bridge.model.ReadResult? = null
@@ -278,7 +278,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
                 result = withContext(ActionDispatcher.dispatcher) {
-                    val actionEngine = WeChatActionEngine()
+                    val actionEngine = MoxinActionEngine()
                     readOperation(actionEngine, service)
                 }
             } catch (e: Exception) {
@@ -331,7 +331,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         service: BridgeAccessibilityService,
         contactName: String,
         cacheSetter: (List<com.bridge.model.MessageData>) -> Unit,
-        readOperation: suspend (WeChatActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
+        readOperation: suspend (MoxinActionEngine, BridgeAccessibilityService) -> com.bridge.model.ReadResult
     ): Response {
         // 使用同步方式执行读取（在 ActionDispatcher 线程）
         var result: com.bridge.model.ReadResult? = null
@@ -340,7 +340,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
                 result = withContext(ActionDispatcher.dispatcher) {
-                    val actionEngine = WeChatActionEngine()
+                    val actionEngine = MoxinActionEngine()
                     readOperation(actionEngine, service)
                 }
             } catch (e: Exception) {

@@ -46,7 +46,7 @@ object ConfigManager {
     )
 
     val COORDINATE_CONFIGS = listOf(
-        CoordinateConfig("搜索按钮", "微信首页右上角放大镜", KEY_SEARCH_BTN_X, KEY_SEARCH_BTN_Y),
+        CoordinateConfig("搜索按钮", "某信首页右上角放大镜", KEY_SEARCH_BTN_X, KEY_SEARCH_BTN_Y),
         CoordinateConfig("输入法剪贴板", "键盘上的剪贴板内容位置", KEY_IME_CLIPBOARD_X, KEY_IME_CLIPBOARD_Y),
         CoordinateConfig("联系人", "搜索结果中的联系人", KEY_CONTACT_X, KEY_CONTACT_Y),
         CoordinateConfig("消息输入框", "聊天界面底部输入框", KEY_MSG_INPUT_X, KEY_MSG_INPUT_Y),

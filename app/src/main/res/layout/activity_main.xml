@@ -28,7 +28,7 @@
             android:id="@+id/subtitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OpenClaw 微信自动化桥接"
+            android:text="OpenClaw 某信自动化桥接"
             android:textSize="12sp"
             android:textColor="#666666"
             android:layout_gravity="center"

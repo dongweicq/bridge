@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Bridge APK is an Android automation bridge for OpenClaw (an AI agent running on Termux). It enables UI automation on Android without root access by using AccessibilityService and NotificationListenerService to interact with apps like WeChat.
+Bridge APK is an Android automation bridge for OpenClaw (an AI agent running on Termux). It enables UI automation on Android without root access by using AccessibilityService and NotificationListenerService to interact with apps like Moxin.
 
 **Status**: Early development phase - specifications complete, source code to be implemented.
 
@@ -96,7 +96,7 @@ Priority order for finding UI nodes:
 3. Resource-id
 4. ClassName + index
 
-Always implement fallbacks - WeChat UI changes between versions.
+Always implement fallbacks - Moxin UI changes between versions.
 
 ## Documentation
 
@@ -305,7 +305,7 @@ Bridge APP includes a coordinate calibration system for device-specific touch po
    - Grant Overlay Permission (悬浮窗权限)
 
 2. **Calibrate 5 Steps**:
-   - Step 1: Search button (微信首页右上角放大镜)
+   - Step 1: Search button (某信首页右上角放大镜)
    - Step 2: IME clipboard (输入法剪贴板位置)
    - Step 3: Contact (搜索结果联系人)
    - Step 4: Message input (消息输入框)
@@ -313,7 +313,7 @@ Bridge APP includes a coordinate calibration system for device-specific touch po
 
 3. **How to Calibrate**:
    - Click "获取" button for each step
-   - APP auto-executes pre-steps (opens WeChat, navigates to target screen)
+   - APP auto-executes pre-steps (opens Moxin, navigates to target screen)
    - An overlay appears - tap the target position
    - Coordinates are saved as screen ratios (0.0-1.0)
 

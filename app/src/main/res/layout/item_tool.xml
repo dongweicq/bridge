@@ -86,7 +86,7 @@
         android:id="@+id/preToolsInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="前置: 打开微信 → 搜索按钮"
+        android:text="前置: 打开某信 → 搜索按钮"
         android:textSize="10sp"
         android:textColor="#AAAAAA"
         android:layout_marginTop="2dp"/>

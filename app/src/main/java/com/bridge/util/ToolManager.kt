@@ -59,7 +59,7 @@ object ToolManager {
     private const val CURRENT_VERSION = 3  // 更新版本号以强制重置工具配置
 
     // 内置工具ID
-    const val TOOL_OPEN_WECHAT = "builtin_open_wechat"
+    const val TOOL_OPEN_MOXIN = "builtin_open_moxin"
     const val TOOL_SET_CLIPBOARD = "builtin_set_clipboard"
     const val TOOL_GO_BACK = "builtin_go_back"
 
@@ -67,9 +67,9 @@ object ToolManager {
     private fun getBuiltInTools(): List<Tool> {
         return listOf(
             Tool(
-                id = TOOL_OPEN_WECHAT,
-                name = "打开微信",
-                description = "启动微信应用",
+                id = TOOL_OPEN_MOXIN,
+                name = "打开某信",
+                description = "启动某信应用",
                 x = 0f,
                 y = 0f,
                 preToolIds = emptyList(),
@@ -225,10 +225,10 @@ object ToolManager {
                 Tool(
                     id = "tool_search_btn",
                     name = "搜索按钮",
-                    description = "微信首页右上角放大镜",
+                    description = "某信首页右上角放大镜",
                     x = 0.845f,
                     y = 0.075f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT)
+                    preToolIds = listOf(TOOL_OPEN_MOXIN)
                 ),
                 Tool(
                     id = "tool_ime_clipboard",
@@ -236,7 +236,7 @@ object ToolManager {
                     description = "键盘上的剪贴板内容位置",
                     x = 0.50f,
                     y = 0.65f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn")
+                    preToolIds = listOf(TOOL_OPEN_MOXIN, "tool_search_btn")
                 ),
                 Tool(
                     id = "tool_contact",
@@ -244,7 +244,7 @@ object ToolManager {
                     description = "搜索结果中的联系人",
                     x = 0.50f,
                     y = 0.213f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard")
+                    preToolIds = listOf(TOOL_OPEN_MOXIN, "tool_search_btn", "tool_ime_clipboard")
                 ),
                 Tool(
                     id = "tool_msg_input",
@@ -252,7 +252,7 @@ object ToolManager {
                     description = "聊天界面底部输入框",
                     x = 0.35f,
                     y = 0.955f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard", "tool_contact")
+                    preToolIds = listOf(TOOL_OPEN_MOXIN, "tool_search_btn", "tool_ime_clipboard", "tool_contact")
                 ),
                 Tool(
                     id = "tool_send_btn",
@@ -260,7 +260,7 @@ object ToolManager {
                     description = "聊天界面发送按钮",
                     x = 0.92f,
                     y = 0.955f,
-                    preToolIds = listOf(TOOL_OPEN_WECHAT, "tool_search_btn", "tool_ime_clipboard", "tool_contact", "tool_msg_input", "tool_ime_clipboard")
+                    preToolIds = listOf(TOOL_OPEN_MOXIN, "tool_search_btn", "tool_ime_clipboard", "tool_contact", "tool_msg_input", "tool_ime_clipboard")
                 )
             )
             saveUserTools(context, defaultTools)

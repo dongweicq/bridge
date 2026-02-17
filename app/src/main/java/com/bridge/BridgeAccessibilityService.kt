@@ -11,7 +11,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.bridge.action.ActionDispatcher
-import com.bridge.action.WeChatActionEngine
+import com.bridge.action.MoxinActionEngine
 import com.bridge.model.ContactData
 import com.bridge.model.MessageData
 import com.bridge.model.ReadResult
@@ -32,11 +32,11 @@ class BridgeAccessibilityService : AccessibilityService() {
         var instance: BridgeAccessibilityService? = null
             private set
 
-        // 微信包名
-        const val WECHAT_PACKAGE = "com.tencent.mm"
+        // 某信包名
+        const val MOXIN_PACKAGE = "com.tencent.mm"
     }
 
-    private val actionEngine = WeChatActionEngine()
+    private val actionEngine = MoxinActionEngine()
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onServiceConnected() {
@@ -70,8 +70,8 @@ class BridgeAccessibilityService : AccessibilityService() {
     // ==================== 数据读取方法 ====================
 
     /**
-     * 读取微信首页聊天列表
-     * 前提：当前已在微信首页
+     * 读取某信首页聊天列表
+     * 前提：当前已在某信首页
      * @return ReadResult 包含联系人列表
      */
     fun readChatList(): ReadResult {
@@ -82,22 +82,26 @@ class BridgeAccessibilityService : AccessibilityService() {
                 return ReadResult.error("无活动窗口")
             }
 
-            // 检查是否在微信
+            // 检查是否在某信
             val packageName = root.packageName?.toString()
-            if (packageName != WECHAT_PACKAGE) {
-                Log.w(TAG, "readChatList: 不在微信中, package=$packageName")
-                return ReadResult.error("不在微信应用中")
+            if (packageName != MOXIN_PACKAGE) {
+                Log.w(TAG, "readChatList: 不在某信中, package=$packageName")
+                return ReadResult.error("不在某信应用中")
             }
+
+            // 获取屏幕尺寸
+            val screenBounds = getScreenBounds()
+            Log.d(TAG, "readChatList: 屏幕尺寸 ${screenBounds.width()}x${screenBounds.height()}, root包名=$packageName")
 
             val contacts = mutableListOf<ContactData>()
             val seenNames = mutableSetOf<String>()
 
-            // 遍历UI树查找联系人节点
-            collectChatListItems(root, contacts, seenNames, 0, 15)
+            // 遍历UI树查找所有文本节点
+            collectAllTextNodes(root, contacts, seenNames, 0, 20, screenBounds)
 
             Log.d(TAG, "读取到 ${contacts.size} 个联系人")
             if (contacts.isEmpty()) {
-                ReadResult.error("未读取到联系人，请确保在微信首页")
+                ReadResult.error("未读取到联系人，请确保在某信首页")
             } else {
                 ReadResult.successContacts(contacts)
             }
@@ -109,86 +113,45 @@ class BridgeAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 递归收集聊天列表项
+     * 收集所有可能的联系人文本节点
      */
-    private fun collectChatListItems(
+    private fun collectAllTextNodes(
         node: AccessibilityNodeInfo,
         contacts: MutableList<ContactData>,
         seenNames: MutableSet<String>,
         depth: Int,
-        maxDepth: Int
+        maxDepth: Int,
+        screenBounds: Rect
     ) {
         if (depth > maxDepth) return
 
-        // 尝试从当前节点提取联系人信息
-        val contact = extractContactFromNode(node)
-        if (contact != null && contact.name !in seenNames) {
-            // 排除常见的非联系人文本
-            if (isValidContactName(contact.name)) {
-                seenNames.add(contact.name)
-                contacts.add(contact)
+        val text = node.text?.toString()?.trim()
+        if (!text.isNullOrEmpty() && text.length >= 2 && text.length <= 20) {
+            // 检查是否可能是联系人名称
+            if (isValidContactName(text) && text !in seenNames) {
+                val bounds = Rect()
+                node.getBoundsInScreen(bounds)
+
+                // 检查节点是否在屏幕上半部分（联系人名称通常在上方）
+                if (bounds.top < screenBounds.height() * 0.8 && bounds.height() > 10 && bounds.height() < 150) {
+                    seenNames.add(text)
+                    contacts.add(ContactData(
+                        name = text,
+                        displayName = text,
+                        lastMessage = null,
+                        lastTime = null,
+                        unreadCount = 0
+                    ))
+                    Log.d(TAG, "找到联系人: $text, bounds=$bounds")
+                }
             }
         }
 
         // 递归处理子节点
         for (i in 0 until node.childCount) {
             val child = node.getChild(i) ?: continue
-            collectChatListItems(child, contacts, seenNames, depth + 1, maxDepth)
+            collectAllTextNodes(child, contacts, seenNames, depth + 1, maxDepth, screenBounds)
         }
-    }
-
-    /**
-     * 从节点提取联系人信息
-     */
-    private fun extractContactFromNode(node: AccessibilityNodeInfo): ContactData? {
-        // 获取文本内容
-        val text = node.text?.toString()?.trim()
-        if (text.isNullOrEmpty() || text.length < 2) {
-            return null
-        }
-
-        // 检查节点特征：聊天列表项通常可点击
-        if (!node.isClickable && node.parent?.isClickable != true) {
-            return null
-        }
-
-        // 检查是否是联系人名称（通常在列表项的上半部分）
-        val bounds = Rect()
-        node.getBoundsInScreen(bounds)
-
-        // 排除太大或太小的节点
-        if (bounds.height() < 20 || bounds.height() > 200) {
-            return null
-        }
-
-        return ContactData(
-            name = text,
-            displayName = text,
-            lastMessage = null,
-            lastTime = null,
-            unreadCount = 0
-        )
-    }
-
-    /**
-     * 判断是否是有效的联系人名称
-     */
-    private fun isValidContactName(name: String): Boolean {
-        // 排除常见的UI文本
-        val invalidNames = setOf(
-            "微信", "通讯录", "发现", "我",
-            "搜索", "扫一扫", "收付款",
-            "设置", "朋友圈", "视频号"
-        )
-        if (name in invalidNames) return false
-
-        // 排除纯数字时间格式 (如 "12:30")
-        if (name.matches(Regex("\\d{1,2}:\\d{2}"))) return false
-
-        // 排除日期格式 (如 "昨天", "周一")
-        if (name in setOf("昨天", "前天", "周一", "周二", "周三", "周四", "周五", "周六", "周日")) return false
-
-        return true
     }
 
     /**
@@ -205,11 +168,11 @@ class BridgeAccessibilityService : AccessibilityService() {
                 return ReadResult.error("无活动窗口")
             }
 
-            // 检查是否在微信
+            // 检查是否在某信
             val packageName = root.packageName?.toString()
-            if (packageName != WECHAT_PACKAGE) {
-                Log.w(TAG, "readChatHistory: 不在微信中")
-                return ReadResult.error("不在微信应用中")
+            if (packageName != MOXIN_PACKAGE) {
+                Log.w(TAG, "readChatHistory: 不在某信中")
+                return ReadResult.error("不在某信应用中")
             }
 
             val messages = mutableListOf<MessageData>()
@@ -292,22 +255,22 @@ class BridgeAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 打开微信
+     * 打开某信
      */
-    fun openWeChat(): Boolean {
+    fun openMoxin(): Boolean {
         return try {
-            val intent = packageManager.getLaunchIntentForPackage(WECHAT_PACKAGE)
+            val intent = packageManager.getLaunchIntentForPackage(MOXIN_PACKAGE)
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
-                Log.d(TAG, "WeChat launched")
+                Log.d(TAG, "Moxin launched")
                 true
             } else {
-                Log.e(TAG, "WeChat not found")
+                Log.e(TAG, "Moxin not found")
                 false
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch WeChat", e)
+            Log.e(TAG, "Failed to launch Moxin", e)
             false
         }
     }

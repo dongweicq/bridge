@@ -5,12 +5,12 @@ import com.bridge.model.ContactData
 import com.bridge.model.MessageData
 
 /**
- * 微信数据内存缓存
+ * 某信数据内存缓存
  * 简单实现：带时间戳的内存缓存，支持TTL过期
  */
-object WeChatDataCache {
+object MoxinDataCache {
 
-    private const val TAG = "WeChatDataCache"
+    private const val TAG = "MoxinDataCache"
 
     // 缓存TTL配置（毫秒）
     private const val CONTACTS_TTL_MS = 5 * 60 * 1000L    // 联系人列表: 5分钟

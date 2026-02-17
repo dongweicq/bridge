@@ -18,7 +18,7 @@
 
 ### 非功能需求（重要）
 1. 无需 root；使用官方 API（Accessibility、NotificationListener）实现所有功能。
-2. 尽量避免依赖硬编码 resource-id；实现多策略 UI 定位器以兼容微信升级。
+2. 尽量避免依赖硬编码 resource-id；实现多策略 UI 定位器以兼容某信升级。
 3. 响应延迟小于 5s（常规操作）；发送消息应有 95% 成功率（稳定实现目标）。
 4. 支持 Android 9+（优先），并向上兼容 Android 13/14 的行为差异（例如后台限制）。
 5. 能在前台服务被暂时停止时做优雅降级（记录未发送队列与恢复逻辑）。
@@ -103,7 +103,7 @@ implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 
 ### 输入文本细节（兼容性）
 - 优先使用 `AccessibilityNodeInfo.ACTION_SET_TEXT`（更稳定，Android 7+ 支持）
-- 兼容方案：通过剪贴板 + 长按粘贴（在某些微信版本 ACTION_SET_TEXT 受限）
+- 兼容方案：通过剪贴板 + 长按粘贴（在某些某信版本 ACTION_SET_TEXT 受限）
 - 模拟输入节奏：加入 100–400ms 的字符间延迟或统一随机延迟以防检测
 - 点击发送后需检测发送是否成功（读取最新消息时间与文本以校验）
 
@@ -112,11 +112,11 @@ implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 - 在设置页展示权限说明与风险提示，取得明确同意并在本地记录时间戳
 
 ---
-## 5 UI 解析与稳定性对策（应对微信变更）
+## 5 UI 解析与稳定性对策（应对某信变更）
 
 1. **多策略定位器**：按优先级尝试 text → content-desc → resource-id → class+index。若一项失败，则回退到下一项。
 2. **回退模式**：若主定位策略连续 N 次失败（N 可配置，推荐 5 次），进入“安全模式”：仅做通知监听不发消息，并上报错误（可写入 `/health`）
-3. **自动化回归脚本**：在开发阶段提供一组 UI 测试脚本（ADB + UIAutomator）用于在微信更新后快速定位变化节点并生成新策略规则
+3. **自动化回归脚本**：在开发阶段提供一组 UI 测试脚本（ADB + UIAutomator）用于在某信更新后快速定位变化节点并生成新策略规则
 4. **人机调试模式**：Bridge 提供 “inspect” API：打开指定聊天并把 UI 节点树序列化返回（仅在调试模式下启用）
 
 ---
@@ -156,7 +156,7 @@ implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 1. 用 ADB 观察 Logcat：`adb logcat | grep Bridge`
 2. 使用 Postman 调用 `/send_message`，观察 UI 行为
 3. 开发 `inspect` API 在调试阶段导出 UI 节点树，帮助定位
-4. 每次微信升级后运行回归脚本（ADB + UIAutomator）
+4. 每次某信升级后运行回归脚本（ADB + UIAutomator）
 
 ### 部署
 - 打包签名 APK 并通过 USB / 本地网络安装
@@ -181,7 +181,7 @@ class AccessibilityBridge : AccessibilityService() {
     override fun onInterrupt() {}
 
     fun sendMessage(target: String, message: String): Boolean {
-        // 1. 打开微信主界面
+        // 1. 打开某信主界面
         val pm = packageManager.getLaunchIntentForPackage("com.tencent.mm")
         pm?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(pm)
@@ -242,10 +242,10 @@ class BridgeServer(port:Int): NanoHTTPD(port) {
 ---
 ## 11 QA（常见问题）
 
-**Q1：Bridge 是否会被微信或系统认为是“机器人”并封号？**  
+**Q1：Bridge 是否会被某信或系统认为是“机器人”并封号？**  
 A：Bridge 模拟真人操作（随机延迟、打字模拟、限制高频），并且不使用非官方 API。风险低，但依然建议保守的发送频率与白名单机制。
 
-**Q2：Bridge 在微信升级后会失效吗？**  
+**Q2：Bridge 在某信升级后会失效吗？**  
 A：可能。需要运行时日志与 inspect 工具快速定位变化并更新定位策略。
 
 **Q3：消息数据是否安全？**  

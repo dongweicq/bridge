@@ -243,7 +243,7 @@ consumerScope.launch {
 
 1. 按 v2 规范实现 Bridge 的最小可用版本（MVP）：HTTP 接口 + Accessibility 基本动作 + Queue Consumer + Foreground Service。  
 2. 在 MVP 基础上加入 NotificationListener 与 Watchdog、WakeLock/Keyguard 支持、Android 13 引导。  
-3. 编写回归脚本并在 CI（可选，需连接测试设备）对每次微信升级跑回归。  
+3. 编写回归脚本并在 CI（可选，需连接测试设备）对每次某信升级跑回归。  
 4. 逐步开放主动发送策略（先白名单联系人 → 小范围试点 → 全自动）。
 
 ---

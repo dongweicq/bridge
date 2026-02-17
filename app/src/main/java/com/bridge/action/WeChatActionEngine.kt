@@ -11,14 +11,14 @@ import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 /**
- * 微信动作引擎
- * 负责执行微信自动化操作
+ * 某信动作引擎
+ * 负责执行某信自动化操作
  * 使用工具链系统执行操作
  */
-class WeChatActionEngine {
+class MoxinActionEngine {
 
     companion object {
-        private const val TAG = "WeChatActionEngine"
+        private const val TAG = "MoxinActionEngine"
     }
 
     // 随机延迟函数
@@ -37,29 +37,32 @@ class WeChatActionEngine {
     // ==================== 导航方法 ====================
 
     /**
-     * 导航到微信首页
+     * 导航到某信首页
      * @return TaskResult 表示导航结果
      */
-    suspend fun navigateToWeChatHome(service: BridgeAccessibilityService): TaskResult {
+    suspend fun navigateToMoxinHome(service: BridgeAccessibilityService): TaskResult {
         return try {
-            Log.d(TAG, "导航到微信首页...")
+            Log.d(TAG, "导航到某信首页...")
 
-            // 打开微信
-            if (!service.openWeChat()) {
-                return TaskResult.fail("无法打开微信")
+            // 打开某信
+            if (!service.openMoxin()) {
+                return TaskResult.fail("无法打开某信")
             }
             delayAfterOpenApp()
 
-            // 检查是否在微信应用中
-            val root = service.getRootNode()
-            val isInWeChat = root?.packageName?.toString() == BridgeAccessibilityService.WECHAT_PACKAGE
+            // 等待 UI 稳定
+            delay(2000)
 
-            if (isInWeChat) {
-                Log.d(TAG, "已到达微信: ${root?.packageName}")
-                TaskResult.ok("已打开微信")
+            // 检查是否在某信应用中
+            val root = service.getRootNode()
+            val isInMoxin = root?.packageName?.toString() == BridgeAccessibilityService.MOXIN_PACKAGE
+
+            if (isInMoxin) {
+                Log.d(TAG, "已到达某信: ${root?.packageName}")
+                TaskResult.ok("已打开某信")
             } else {
-                Log.w(TAG, "未能打开微信")
-                TaskResult.fail("未能打开微信")
+                Log.w(TAG, "未能打开某信, package=${root?.packageName}")
+                TaskResult.fail("未能打开某信")
             }
         } catch (e: Exception) {
             Log.e(TAG, "导航到首页失败", e)
@@ -89,9 +92,9 @@ class WeChatActionEngine {
                 return TaskResult.fail("工具未配置，请先在工具管理中配置坐标")
             }
 
-            // 1. 打开微信
-            if (!service.openWeChat()) {
-                return TaskResult.fail("无法打开微信")
+            // 1. 打开某信
+            if (!service.openMoxin()) {
+                return TaskResult.fail("无法打开某信")
             }
             delayAfterOpenApp()
 
@@ -157,7 +160,7 @@ class WeChatActionEngine {
             val msgInputTool = allTools.find { it.name == "消息输入框" }
 
             // 步骤1: 设置剪贴板内容为目标联系人名称（直接使用中文）
-            // 注：剪贴板完全支持中文，微信搜索也支持中文直接搜索
+            // 注：剪贴板完全支持中文，某信搜索也支持中文直接搜索
             // 如需使用拼音首字母搜索，可改为：PinyinUtil.toPinyinInitials(task.target)
             val searchText = task.target
             Log.d(TAG, "搜索联系人: '$searchText'")
@@ -165,7 +168,7 @@ class WeChatActionEngine {
             setClipboard(service, searchText)
             delayAfterInput()
 
-            // 步骤2: 执行前置工具链（打开微信等）
+            // 步骤2: 执行前置工具链（打开某信等）
             for (tool in executionChain) {
                 // 跳过发送按钮本身，我们后面单独处理
                 if (tool.name == "发送按钮") continue
@@ -218,12 +221,12 @@ class WeChatActionEngine {
         searchText: String? = null
     ): TaskResult {
         return when (tool.id) {
-            ToolManager.TOOL_OPEN_WECHAT -> {
-                if (!service.openWeChat()) {
-                    TaskResult.fail("无法打开微信")
+            ToolManager.TOOL_OPEN_MOXIN -> {
+                if (!service.openMoxin()) {
+                    TaskResult.fail("无法打开某信")
                 } else {
                     delayAfterOpenApp()
-                    TaskResult.ok("已打开微信")
+                    TaskResult.ok("已打开某信")
                 }
             }
             ToolManager.TOOL_SET_CLIPBOARD -> {

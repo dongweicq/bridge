@@ -37,7 +37,7 @@
         android:id="@+id/toolDescEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="例如：微信首页右上角放大镜"
+        android:hint="例如：某信首页右上角放大镜"
         android:inputType="text"
         android:maxLines="2"/>
 

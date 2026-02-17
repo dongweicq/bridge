@@ -1,4 +1,4 @@
-# Bridge APK 自动部署脚本 (Windows PowerShell)
+﻿# Bridge APK 自动部署脚本 (Windows PowerShell)
 # 功能：下载最新 APK、安装、启动、监控日志
 
 param(
@@ -128,7 +128,7 @@ function Test-Api {
 
 # 显示帮助
 function Show-Help {
-    Write-Output "用法: .\auto_deploy.ps1 [-Action <命令>]"
+    Write-Output "用法: .\auto_deploy.ps1 [-Action 命令]"
     Write-Output ""
     Write-Output "命令:"
     Write-Output "  full     - 完整流程：下载、安装、启动 (默认)"
@@ -194,8 +194,8 @@ function Main {
                 if (Install-Apk) {
                     Start-App
                     Write-Success "部署完成!"
-                    Write-Warn "提示: 使用 '.\auto_deploy.ps1 -Action logs' 监控日志"
-                    Write-Warn "提示: 使用 '.\auto_deploy.ps1 -Action test' 测试 API"
+                    Write-Warn "提示: 使用 .\auto_deploy.ps1 -Action logs 监控日志"
+                    Write-Warn "提示: 使用 .\auto_deploy.ps1 -Action test 测试 API"
                 }
             }
         }

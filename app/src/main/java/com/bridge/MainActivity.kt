@@ -362,8 +362,8 @@ class MainActivity : AppCompatActivity() {
     // 执行单个工具
     private fun executeTool(tool: Tool, service: BridgeAccessibilityService) {
         when (tool.id) {
-            ToolManager.TOOL_OPEN_WECHAT -> {
-                service.openWeChat()
+            ToolManager.TOOL_OPEN_MOXIN -> {
+                service.openMoxin()
                 randomDelay(6000, 12000)
             }
             ToolManager.TOOL_SET_CLIPBOARD -> {
