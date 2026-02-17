@@ -72,7 +72,7 @@ class WeChatDataReader {
                     (screenBounds.height() * 0.7).toInt(),
                     screenBounds.width() / 2,
                     (screenBounds.height() * 0.3).toInt(),
-                    300
+                    300L
                 )
 
                 if (!scrolled) break
