@@ -353,7 +353,7 @@ class ToolManagerActivity : AppCompatActivity() {
         })
         itemTouchHelper.attachToRecyclerView(preToolsList)
 
-        // 获取坐标按钮
+        // 获取坐标按钮 - 需要执行前置工具
         pickCoordBtn.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "请先授予悬浮窗权限", Toast.LENGTH_SHORT).show()
@@ -364,23 +364,77 @@ class ToolManagerActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val currentX = xEdit.text.toString().toFloatOrNull() ?: 0f
-            val currentY = yEdit.text.toString().toFloatOrNull() ?: 0f
+            val service = BridgeAccessibilityService.instance
+            if (service == null) {
+                Toast.makeText(this, "请先启用无障碍服务", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-            coordinatePicker?.dismiss()
-            coordinatePicker = CoordinatePicker(
-                context = this,
-                onCoordinatePicked = { x, y ->
-                    runOnUiThread {
-                        xEdit.setText(String.format("%.3f", x))
-                        yEdit.setText(String.format("%.3f", y))
-                    }
-                },
-                onCancelled = {},
-                initialX = if (currentX > 0) currentX else null,
-                initialY = if (currentY > 0) currentY else null
+            // 临时保存当前编辑的工具（用于获取前置工具链）
+            val tempTool = Tool(
+                id = editingTool?.id ?: "temp",
+                name = nameEdit.text.toString(),
+                description = descEdit.text.toString(),
+                x = xEdit.text.toString().toFloatOrNull() ?: 0f,
+                y = yEdit.text.toString().toFloatOrNull() ?: 0f,
+                preToolIds = selectedPreTools.map { it.id },
+                isBuiltIn = editingTool?.isBuiltIn ?: false
             )
-            coordinatePicker?.show()
+
+            Toast.makeText(this, "正在执行前置步骤...", Toast.LENGTH_SHORT).show()
+
+            // 获取默认联系人设置剪贴板
+            val defaultContact = getDefaultContact()
+            val pinyinInitials = com.bridge.util.PinyinUtil.toPinyinInitials(defaultContact)
+            android.util.Log.d("ToolManager", "设置剪贴板: $pinyinInitials (联系人: $defaultContact)")
+            runOnUiThread {
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, pinyinInitials))
+            }
+
+            // 在后台线程执行前置工具链
+            Thread {
+                try {
+                    // 获取前置工具链
+                    android.util.Log.d("ToolManager", "编辑对话框前置工具链: ${selectedPreTools.map { it.name }}")
+
+                    for (t in selectedPreTools) {
+                        android.util.Log.d("ToolManager", "执行前置工具: ${t.name}")
+                        executeTool(t, service)
+                    }
+
+                    runOnUiThread {
+                        Toast.makeText(this, "请在屏幕上点击选择位置", Toast.LENGTH_SHORT).show()
+
+                        val currentX = xEdit.text.toString().toFloatOrNull() ?: 0f
+                        val currentY = yEdit.text.toString().toFloatOrNull() ?: 0f
+
+                        coordinatePicker?.dismiss()
+                        coordinatePicker = CoordinatePicker(
+                            context = this@ToolManagerActivity,
+                            onCoordinatePicked = { x, y ->
+                                runOnUiThread {
+                                    xEdit.setText(String.format("%.3f", x))
+                                    yEdit.setText(String.format("%.3f", y))
+                                }
+                            },
+                            onCancelled = {
+                                runOnUiThread {
+                                    Toast.makeText(this@ToolManagerActivity, "已取消", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            initialX = if (currentX > 0) currentX else null,
+                            initialY = if (currentY > 0) currentY else null
+                        )
+                        coordinatePicker?.show()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ToolManager", "执行前置工具失败", e)
+                    runOnUiThread {
+                        Toast.makeText(this, "前置步骤失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.start()
         }
 
         // 添加前置工具按钮
