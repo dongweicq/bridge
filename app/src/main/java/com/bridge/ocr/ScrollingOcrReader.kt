@@ -50,7 +50,7 @@ class ScrollingOcrReader(
             val result = OcrService.recognize(bitmap)
             if (result.success) {
                 if (attempt > 0) {
-                    Log.d(TAG, "OCR重试第$attempt次成功")
+                    Log.d(TAG, "OCR重试第${attempt}次成功")
                 }
                 return result
             }
@@ -81,7 +81,7 @@ class ScrollingOcrReader(
             val result = screenshotHelper.capture()
             if (result.success && result.bitmap != null) {
                 if (attempt > 0) {
-                    Log.d(TAG, "截图重试第$attempt次成功")
+                    Log.d(TAG, "截图重试第${attempt}次成功")
                 }
                 return result
             }

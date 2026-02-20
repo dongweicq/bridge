@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.bridge.ocr.OcrService
 import com.bridge.ocr.ScreenshotHelper
 import com.bridge.util.Tool
@@ -524,19 +525,21 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.d("Bridge", "REQUEST_CODE_SCREENSHOT received: resultCode=$resultCode, RESULT_OK=${Activity.RESULT_OK}, data=$data")
 
             if (resultCode == Activity.RESULT_OK && data != null) {
-                // 初始化 MediaProjection
+                // 初始化 MediaProjection (在协程中调用 suspend 函数)
                 android.util.Log.d("Bridge", "初始化 MediaProjection...")
-                val success = screenshotHelper?.initMediaProjection(resultCode, data) ?: false
-                android.util.Log.d("Bridge", "MediaProjection 初始化结果: $success")
+                androidx.lifecycle.lifecycleScope.launch {
+                    val success = screenshotHelper?.initMediaProjection(resultCode, data) ?: false
+                    android.util.Log.d("Bridge", "MediaProjection 初始化结果: $success")
 
-                if (success) {
-                    Toast.makeText(this, "截图权限已获取", Toast.LENGTH_SHORT).show()
-                    // 同步到 BridgeServer 的 HTTP API
-                    BridgeService.instance?.bridgeServer?.setScreenshotResult(resultCode, data)
-                    // 执行 OCR 测试
-                    executeOcrTest()
-                } else {
-                    Toast.makeText(this, "截图权限初始化失败", Toast.LENGTH_SHORT).show()
+                    if (success) {
+                        Toast.makeText(this@MainActivity, "截图权限已获取", Toast.LENGTH_SHORT).show()
+                        // 同步到 BridgeServer 的 HTTP API
+                        BridgeService.instance?.bridgeServer?.setScreenshotResult(resultCode, data)
+                        // 执行 OCR 测试
+                        executeOcrTest()
+                    } else {
+                        Toast.makeText(this@MainActivity, "截图权限初始化失败", Toast.LENGTH_SHORT).show()
+                    }
                 }
             } else {
                 android.util.Log.w("Bridge", "截图权限被拒绝或数据为空: resultCode=$resultCode, data=$data")
