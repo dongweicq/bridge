@@ -99,3 +99,4 @@ get_*.ps1
 
 # Utility scripts (not for production)
 delete_workflow_runs.py
+.opencode/
