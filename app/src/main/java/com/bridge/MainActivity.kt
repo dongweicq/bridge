@@ -12,7 +12,6 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.bridge.ocr.OcrService
 import com.bridge.ocr.ScreenshotHelper
 import com.bridge.util.Tool
@@ -527,18 +526,22 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 // 初始化 MediaProjection (在协程中调用 suspend 函数)
                 android.util.Log.d("Bridge", "初始化 MediaProjection...")
-                androidx.lifecycle.lifecycleScope.launch {
+                CoroutineScope(Dispatchers.Main).launch {
                     val success = screenshotHelper?.initMediaProjection(resultCode, data) ?: false
                     android.util.Log.d("Bridge", "MediaProjection 初始化结果: $success")
 
                     if (success) {
-                        Toast.makeText(this@MainActivity, "截图权限已获取", Toast.LENGTH_SHORT).show()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, "截图权限已获取", Toast.LENGTH_SHORT).show()
+                        }
                         // 同步到 BridgeServer 的 HTTP API
                         BridgeService.instance?.bridgeServer?.setScreenshotResult(resultCode, data)
                         // 执行 OCR 测试
                         executeOcrTest()
                     } else {
-                        Toast.makeText(this@MainActivity, "截图权限初始化失败", Toast.LENGTH_SHORT).show()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, "截图权限初始化失败", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             } else {
