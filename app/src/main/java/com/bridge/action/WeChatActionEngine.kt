@@ -38,6 +38,7 @@ class MoxinActionEngine {
 
     /**
      * 导航到某信通讯录界面
+     * 使用3层回退策略：工具配置 → AccessibilityService检测 → 默认位置
      * @return TaskResult 表示导航结果
      */
     suspend fun navigateToContacts(service: BridgeAccessibilityService): TaskResult {
@@ -50,28 +51,74 @@ class MoxinActionEngine {
                 return homeResult
             }
 
-            // 获取通讯录工具
+            var clicked = false
+
+            // 策略1: 使用工具配置
             val allTools = ToolManager.getAllTools(service)
             val contactsTabTool = allTools.find { it.name == "通讯录" }
 
-            if (contactsTabTool == null || contactsTabTool.x <= 0 || contactsTabTool.y <= 0) {
-                Log.w(TAG, "通讯录工具未配置，尝试使用默认位置")
-                // 使用默认位置（底部导航栏第二个）
-                val screenBounds = service.getScreenBounds()
-                val defaultX = (screenBounds.width() * 0.25).toInt()
-                val defaultY = (screenBounds.height() * 0.97).toInt()
-                service.clickAt(defaultX, defaultY)
-            } else {
+            if (contactsTabTool != null && contactsTabTool.x > 0 && contactsTabTool.y > 0) {
+                Log.d(TAG, "使用工具配置点击通讯录")
                 clickToolCoordinate(contactsTabTool, service)
+                clicked = true
+            }
+
+            // 策略2: 使用AccessibilityService检测
+            if (!clicked) {
+                val contactsTab = service.findContactsTab()
+                if (contactsTab != null) {
+                    Log.d(TAG, "使用AccessibilityService检测点击通讯录")
+                    clicked = clickNode(contactsTab)
+                }
+            }
+
+            // 策略3: 使用默认位置（底部导航栏第二个）
+            if (!clicked) {
+                Log.w(TAG, "通讯录工具未配置且AccessibilityService未检测到，使用默认位置")
+                val screenBounds = service.getScreenBounds()
+                // 底部导航: 微信(0.125), 通讯录(0.375), 发现(0.625), 我(0.875)
+                val defaultX = (screenBounds.width() * 0.375).toInt()
+                val defaultY = (screenBounds.height() * 0.95).toInt()
+                service.clickAt(defaultX, defaultY)
+                clicked = true
             }
 
             delayAfterClick()
 
-            Log.d(TAG, "已到达通讯录界面")
-            TaskResult.ok("已进入通讯录")
+            if (clicked) {
+                Log.d(TAG, "已到达通讯录界面")
+                TaskResult.ok("已进入通讯录")
+            } else {
+                TaskResult.fail("无法点击通讯录标签")
+            }
         } catch (e: Exception) {
             Log.e(TAG, "导航到通讯录失败", e)
             TaskResult.fail("导航失败: ${e.message}")
+        }
+    }
+
+    /**
+     * 点击节点
+     */
+    private fun clickNode(node: android.view.accessibility.AccessibilityNodeInfo): Boolean {
+        return try {
+            if (node.isClickable) {
+                node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+            } else {
+                // 查找可点击的父节点
+                var current: android.view.accessibility.AccessibilityNodeInfo? = node.parent
+                while (current != null) {
+                    if (current.isClickable) {
+                        current.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+                        return true
+                    }
+                    current = current.parent
+                }
+                false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "点击节点失败", e)
+            false
         }
     }
 

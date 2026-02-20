@@ -17,6 +17,7 @@ import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -68,7 +69,7 @@ class ScreenshotHelper(private val context: Context) {
      * @param resultCode 从 onActivityResult 获取的 resultCode
      * @param data 从 onActivityResult 获取的 Intent
      */
-    fun initMediaProjection(resultCode: Int, data: Intent): Boolean {
+    suspend fun initMediaProjection(resultCode: Int, data: Intent): Boolean {
         return try {
             Log.d(TAG, "=== initMediaProjection 开始 ===")
             Log.d(TAG, "resultCode=$resultCode (RESULT_OK=${Activity.RESULT_OK})")
@@ -92,7 +93,7 @@ class ScreenshotHelper(private val context: Context) {
                 // 等待服务启动（最多 3 秒）
                 var waitCount = 0
                 while (!MediaProjectionService.isRunning && waitCount < 30) {
-                    Thread.sleep(100)
+                    delay(100)
                     waitCount++
                 }
                 if (!MediaProjectionService.isRunning) {
@@ -100,7 +101,7 @@ class ScreenshotHelper(private val context: Context) {
                     return false
                 }
                 // 额外等待确保 startForeground 完成
-                Thread.sleep(500)
+                delay(500)
             }
             Log.d(TAG, "MediaProjectionService 已就绪: ${MediaProjectionService.isRunning}")
 

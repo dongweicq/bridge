@@ -1,6 +1,19 @@
 package com.bridge.model
 
 /**
+ * 错误类型枚举
+ */
+enum class ReadErrorType {
+    UNKNOWN,
+    NAVIGATION_FAILED,
+    SCREENSHOT_FAILED,
+    OCR_FAILED,
+    TIMEOUT,
+    PERMISSION_DENIED,
+    NO_CONTACTS_FOUND
+}
+
+/**
  * 数据读取结果
  */
 data class ReadResult(
@@ -10,15 +23,30 @@ data class ReadResult(
     val source: String = "fresh",
     val hasMore: Boolean = false,
     val totalCount: Int = 0,
-    val error: String? = null
+    val partial: Boolean = false,  // 是否为部分结果
+    val error: String? = null,
+    val errorType: ReadErrorType? = null,
+    val scrollCount: Int = 0,      // 滚动次数
+    val processingTimeMs: Long = 0  // 处理时间(毫秒)
 ) {
     companion object {
-        fun successContacts(contacts: List<ContactData>, source: String = "fresh"): ReadResult {
+        fun successContacts(
+            contacts: List<ContactData>, 
+            source: String = "fresh",
+            partial: Boolean = false,
+            error: String? = null,
+            scrollCount: Int = 0,
+            processingTimeMs: Long = 0
+        ): ReadResult {
             return ReadResult(
                 success = true,
                 contacts = contacts,
                 source = source,
-                totalCount = contacts.size
+                totalCount = contacts.size,
+                partial = partial,
+                error = error,
+                scrollCount = scrollCount,
+                processingTimeMs = processingTimeMs
             )
         }
 
@@ -31,8 +59,20 @@ data class ReadResult(
             )
         }
 
-        fun error(error: String): ReadResult {
-            return ReadResult(success = false, error = error)
+        fun error(
+            error: String, 
+            errorType: ReadErrorType = ReadErrorType.UNKNOWN,
+            partial: Boolean = false,
+            contacts: List<ContactData>? = null
+        ): ReadResult {
+            return ReadResult(
+                success = false, 
+                error = error, 
+                errorType = errorType,
+                partial = partial,
+                contacts = contacts,
+                totalCount = contacts?.size ?: 0
+            )
         }
     }
 }

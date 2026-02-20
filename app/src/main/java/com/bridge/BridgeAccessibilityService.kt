@@ -551,4 +551,93 @@ class BridgeAccessibilityService : AccessibilityService() {
             dumpNodeToJson(child, nodesArray, depth + 1, maxDepth, nodeCount, packageFilter)
         }
     }
+
+    // ==================== 联系人标签检测 ====================
+
+    /**
+     * 查找通讯录标签（支持多版本微信）
+     * @return 可点击的通讯录标签节点，未找到返回null
+     */
+    fun findContactsTab(): AccessibilityNodeInfo? {
+        val root = rootInActiveWindow ?: return null
+
+        // 检查是否在微信中
+        val packageName = root.packageName?.toString()
+        if (packageName != MOXIN_PACKAGE) {
+            Log.w(TAG, "findContactsTab: 不在微信中, package=$packageName")
+            return null
+        }
+
+        // 策略1: 按文本查找 "通讯录"
+        val contactsByText = root.findAccessibilityNodeInfosByText("通讯录")
+        for (node in contactsByText) {
+            val clickable = findClickableParent(node)
+            if (clickable != null) {
+                val bounds = Rect()
+                clickable.getBoundsInScreen(bounds)
+                // 检查是否在底部导航区域 (y > 85%)
+                val screenBounds = getScreenBounds()
+                if (bounds.top > screenBounds.height() * 0.85) {
+                    Log.d(TAG, "findContactsTab: 找到通讯录标签(文本) bounds=$bounds")
+                    return clickable
+                }
+            }
+        }
+
+        // 策略2: 按内容描述查找 "通讯录" 或 "Contacts"
+        val contactsByDesc = root.findAccessibilityNodeInfosByText("通讯录")
+        for (node in contactsByDesc) {
+            val desc = node.contentDescription?.toString()
+            if (desc?.contains("通讯录") == true || desc?.contains("Contacts") == true) {
+                val clickable = findClickableParent(node)
+                if (clickable != null) {
+                    Log.d(TAG, "findContactsTab: 找到通讯录标签(内容描述)")
+                    return clickable
+                }
+            }
+        }
+
+        // 策略3: 按位置查找底部导航栏第二个按钮
+        // 底部导航: 微信(0.125), 通讯录(0.375), 发现(0.625), 我(0.875)
+        val screenBounds = getScreenBounds()
+        val targetX = (screenBounds.width() * 0.375).toInt()
+        val targetY = (screenBounds.height() * 0.95).toInt()
+
+        // 查找该位置附近可点击的节点
+        val nodeAtPosition = findNodeAtPosition(root, targetX, targetY)
+        if (nodeAtPosition != null) {
+            Log.d(TAG, "findContactsTab: 找到通讯录位置节点 ($targetX, $targetY)")
+            return nodeAtPosition
+        }
+
+        Log.w(TAG, "findContactsTab: 未找到通讯录标签")
+        return null
+    }
+
+    /**
+     * 在指定位置查找可点击的节点
+     */
+    private fun findNodeAtPosition(root: AccessibilityNodeInfo, x: Int, y: Int): AccessibilityNodeInfo? {
+        val bounds = Rect()
+
+        fun findClickableAt(node: AccessibilityNodeInfo, depth: Int): AccessibilityNodeInfo? {
+            if (depth > 20) return null
+
+            node.getBoundsInScreen(bounds)
+            if (bounds.contains(x, y) && node.isClickable) {
+                return node
+            }
+
+            // 递归查找子节点
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                val result = findClickableAt(child, depth + 1)
+                if (result != null) return result
+            }
+
+            return null
+        }
+
+        return findClickableAt(root, 0)
+    }
 }

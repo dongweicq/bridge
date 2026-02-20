@@ -410,6 +410,7 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
     /**
      * 使用 OCR 方式读取联系人列表（支持滚动）
+     * 包含导航重试逻辑
      */
     private fun executeOcrReadWithCache(
         service: BridgeAccessibilityService,
@@ -426,18 +427,33 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
 
         // 使用同步方式执行
         var result: com.bridge.model.ReadResult? = null
+        var navigationRetries = 0
+        val maxNavigationRetries = 3
         val latch = java.util.concurrent.CountDownLatch(1)
 
         CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
-                // 1. 导航到通讯录
-                val navResult = withContext(ActionDispatcher.dispatcher) {
-                    val actionEngine = MoxinActionEngine()
-                    actionEngine.navigateToContacts(service)
-                }
+                // 1. 导航到通讯录（带重试）
+                var navResult: com.bridge.model.TaskResult
+                do {
+                    navResult = withContext(ActionDispatcher.dispatcher) {
+                        val actionEngine = MoxinActionEngine()
+                        actionEngine.navigateToContacts(service)
+                    }
+                    
+                    if (!navResult.success && navigationRetries < maxNavigationRetries - 1) {
+                        navigationRetries++
+                        Log.w(TAG, "导航失败，重试 ($navigationRetries/$maxNavigationRetries): ${navResult.error}")
+                        kotlinx.coroutines.delay(2000L * navigationRetries)  // 指数退避
+                    } else {
+                        break
+                    }
+                } while (navigationRetries < maxNavigationRetries)
 
                 if (!navResult.success) {
-                    result = com.bridge.model.ReadResult.error(navResult.error ?: "导航到通讯录失败")
+                    result = com.bridge.model.ReadResult.error(
+                        "导航到通讯录失败 (重试${navigationRetries}次): ${navResult.error}"
+                    )
                     latch.countDown()
                     return@launch
                 }
@@ -470,11 +486,15 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
             // 更新缓存
             cacheSetter(readResult.contacts!!)
 
-            json(Response.Status.OK, mapOf(
-                "status" to "ok",
-                "source" to "ocr",
+            val responseData = mutableMapOf(
+                "status" to if (readResult.partial) "partial" else "ok",
+                "source" to readResult.source,
                 "method" to "scrolling_ocr",
                 "total" to readResult.totalCount,
+                "partial" to readResult.partial,
+                "navigation_retries" to navigationRetries,
+                "scroll_count" to readResult.scrollCount,
+                "processing_time_ms" to readResult.processingTimeMs,
                 "contacts" to readResult.contacts!!.map { contact ->
                     mapOf(
                         "name" to contact.name,
@@ -484,11 +504,19 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
                         "unread_count" to contact.unreadCount
                     )
                 }
-            ))
+            )
+            if (readResult.error != null) {
+                responseData["warning"] = readResult.error
+            }
+            json(Response.Status.OK, responseData)
         } else {
             json(Response.Status.INTERNAL_ERROR, mapOf(
                 "status" to "error",
-                "error" to (readResult.error ?: "读取失败")
+                "error" to (readResult.error ?: "读取失败"),
+                "error_type" to (readResult.errorType?.name ?: "UNKNOWN"),
+                "navigation_retries" to navigationRetries,
+                "partial" to readResult.partial,
+                "partial_count" to readResult.totalCount
             ))
         }
     }
@@ -632,9 +660,19 @@ class BridgeServer(port: Int) : NanoHTTPD(port) {
         }
 
         val intent = data ?: return
-        val success = screenshotHelper?.initMediaProjection(resultCode, intent) ?: false
-        pendingScreenshotResult?.invoke(success)
-        pendingScreenshotResult = null
+        
+        // initMediaProjection is now suspend, launch in coroutine
+        CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val success = screenshotHelper?.initMediaProjection(resultCode, intent) ?: false
+                pendingScreenshotResult?.invoke(success)
+                pendingScreenshotResult = null
+            } catch (e: Exception) {
+                Log.e(TAG, "initMediaProjection failed", e)
+                pendingScreenshotResult?.invoke(false)
+                pendingScreenshotResult = null
+            }
+        }
     }
 
     /**

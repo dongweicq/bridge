@@ -114,4 +114,63 @@ object ConfigManager {
         }
         editor.apply()
     }
+
+    // ==================== 联系人黑名单配置 ====================
+
+    private const val KEY_CONTACT_BLACKLIST = "contact_blacklist"
+
+    // 默认黑名单（需要过滤的功能入口）
+    private val DEFAULT_BLACKLIST = setOf(
+        "新的朋友", "仅聊天的朋友", "群聊", "标签", "公众号",
+        "搜一搜", "附近的", "通讯录", "搜索", "添加",
+        "设置", "更多", "取消", "确定", "微信",
+        "服务", "钱包", "收藏", "相册", "卡包",
+        "表情", "设置", "视频号", "直播", "看一看"
+    )
+
+    /**
+     * 获取联系人黑名单
+     * @return 黑名单集合
+     */
+    fun getContactBlacklist(context: Context): Set<String> {
+        val saved = getPrefs(context).getStringSet(KEY_CONTACT_BLACKLIST, null)
+        return saved ?: DEFAULT_BLACKLIST
+    }
+
+    /**
+     * 设置联系人黑名单
+     * @param blacklist 黑名单集合
+     */
+    fun setContactBlacklist(context: Context, blacklist: Set<String>) {
+        getPrefs(context).edit()
+            .putStringSet(KEY_CONTACT_BLACKLIST, blacklist)
+            .apply()
+    }
+
+    /**
+     * 添加到黑名单
+     * @param item 要添加的项目
+     */
+    fun addToBlacklist(context: Context, item: String) {
+        val current = getContactBlacklist(context).toMutableSet()
+        current.add(item)
+        setContactBlacklist(context, current)
+    }
+
+    /**
+     * 从黑名单移除
+     * @param item 要移除的项目
+     */
+    fun removeFromBlacklist(context: Context, item: String) {
+        val current = getContactBlacklist(context).toMutableSet()
+        current.remove(item)
+        setContactBlacklist(context, current)
+    }
+
+    /**
+     * 重置黑名单为默认值
+     */
+    fun resetBlacklistToDefaults(context: Context) {
+        setContactBlacklist(context, DEFAULT_BLACKLIST)
+    }
 }
